@@ -3,11 +3,19 @@
 import { useAppStore } from "@/lib/store"
 import { Card } from "@/components/ui/card"
 import { TrendingUp, Wallet, ShoppingBag, Receipt } from "lucide-react"
+import { translations } from "@/lib/translations"
+import { useEffect, useState } from "react"
 
 export function FinancialSummary() {
   const { state, hydrated } = useAppStore()
+  const [isClient, setIsClient] = useState(false)
+  const t = translations[state.language as keyof typeof translations] || translations.ru
 
-  if (!hydrated) {
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
+
+  if (!hydrated || !isClient) {
     return (
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {[1, 2, 3, 4].map((i) => (
@@ -30,28 +38,28 @@ export function FinancialSummary() {
 
   const stats = [
     { 
-      label: "Всего Продаж", 
+      label: t.dashboard.stats.totalSales, 
       value: `${totalSales.toLocaleString()} сум`, 
       icon: ShoppingBag, 
       color: "text-emerald-500",
       bg: "bg-emerald-500/10"
     },
     { 
-      label: "Расходы", 
+      label: t.dashboard.stats.expenses, 
       value: `${totalExpenses.toLocaleString()} сум`, 
       icon: Receipt, 
       color: "text-rose-500",
       bg: "bg-rose-500/10"
     },
     { 
-      label: "Чистая Прибыль", 
+      label: t.dashboard.stats.profit, 
       value: `${totalProfit.toLocaleString()} сум`, 
       icon: Wallet, 
       color: "text-blue-500",
       bg: "bg-blue-500/10"
     },
     { 
-      label: "Долги Клиентов", 
+      label: t.dashboard.stats.clientDebts, 
       value: `${totalDebt.toLocaleString()} сум`, 
       icon: TrendingUp, 
       color: "text-amber-500",

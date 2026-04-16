@@ -12,9 +12,9 @@ import {
   Settings, 
   LayoutDashboard,
   LogOut,
-  Menu,
+  Sun,
   Moon,
-  Sun
+  Languages
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { 
@@ -28,18 +28,28 @@ import {
   SidebarProvider, 
   SidebarTrigger 
 } from "@/components/ui/sidebar"
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { cn } from "@/lib/utils"
-
-const navigationItems = [
-  { name: "Ассистент", href: "/", icon: MessageSquare },
-  { name: "Продажи", href: "/sales", icon: ShoppingCart },
-  { name: "Долги", href: "/debts", icon: CreditCard },
-  { name: "Клиенты", href: "/clients", icon: Users },
-  { name: "Аналитика", href: "/reports", icon: TrendingUp },
-]
+import { useAppStore } from "@/lib/store"
+import { translations } from "@/lib/translations"
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
+  const { state, setLanguage } = useAppStore()
+  const t = translations[state.language as keyof typeof translations] || translations.ru
+
+  const navigationItems = [
+    { name: t.nav.assistant, href: "/", icon: MessageSquare },
+    { name: t.nav.sales, href: "/sales", icon: ShoppingCart },
+    { name: t.nav.debts, href: "/debts", icon: CreditCard },
+    { name: t.nav.clients, href: "/clients", icon: Users },
+    { name: t.nav.analytics, href: "/reports", icon: TrendingUp },
+  ]
 
   return (
     <SidebarProvider>
@@ -85,13 +95,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <SidebarMenuItem>
                 <SidebarMenuButton className="h-11 px-4 text-muted-foreground hover:text-foreground">
                   <Settings className="h-5 w-5" />
-                  <span className="text-[15px]">Настройки</span>
+                  <span className="text-[15px]">{t.nav.settings}</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton className="h-11 px-4 text-destructive hover:bg-destructive/5">
                   <LogOut className="h-5 w-5" />
-                  <span className="text-[15px]">Выйти</span>
+                  <span className="text-[15px]">{t.nav.logout}</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
@@ -103,10 +113,26 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <div className="flex items-center gap-4">
               <SidebarTrigger className="md:hidden" />
               <h1 className="text-lg font-semibold text-foreground">
-                {navigationItems.find(i => i.href === pathname)?.name || "Панель управления"}
+                {navigationItems.find(i => i.href === pathname)?.name || "Dashboard"}
               </h1>
             </div>
             <div className="flex items-center gap-2">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="rounded-full">
+                    <Languages className="h-5 w-5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => setLanguage('ru')}>
+                    Русский
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setLanguage('uz')}>
+                    O'zbekcha
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
               <Button variant="ghost" size="icon" className="rounded-full">
                 <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
                 <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />

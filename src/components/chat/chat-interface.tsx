@@ -9,6 +9,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { aiChatInteraction } from "@/ai/flows/ai-chat-interaction"
 import { useAppStore } from "@/lib/store"
 import { cn } from "@/lib/utils"
+import { translations } from "@/lib/translations"
 
 interface Message {
   id: string
@@ -18,17 +19,19 @@ interface Message {
 }
 
 export function ChatInterface() {
+  const { addSale, addExpense, addDebt, state } = useAppStore()
+  const t = translations[state.language as keyof typeof translations] || translations.ru
+  
   const [input, setInput] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
       role: "assistant",
-      content: "Привет! Я твой бизнес-ассистент SavdoBot. Чем я могу помочь? Можешь сказать: 'Добавь продажу на 50 000' или 'Сколько я заработал сегодня?'",
+      content: t.chat.welcome,
       timestamp: new Date()
     }
   ])
-  const { addSale, addExpense, addDebt, state } = useAppStore()
   const scrollRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -57,26 +60,29 @@ export function ChatInterface() {
       let assistantResponse = ""
 
       if (response.action === "recordSale" && response.sale) {
-        addSale({ amount: response.sale.amount, description: response.sale.description || "Продажа через AI" })
-        assistantResponse = `Записал продажу на ${response.sale.amount.toLocaleString()} сум. 👍`
+        addSale({ amount: response.sale.amount, description: response.sale.description || "AI" })
+        assistantResponse = t.chat.saleRecorded.replace('{amount}', response.sale.amount.toLocaleString())
       } else if (response.action === "recordExpense" && response.expense) {
         addExpense({ amount: response.expense.amount, description: response.expense.description })
-        assistantResponse = `Записал расход: ${response.expense.description} на ${response.expense.amount.toLocaleString()} сум.`
+        assistantResponse = t.chat.expenseRecorded
+          .replace('{desc}', response.expense.description)
+          .replace('{amount}', response.expense.amount.toLocaleString())
       } else if (response.action === "recordDebt" && response.debt) {
         addDebt({ 
           clientName: response.debt.clientName, 
           amount: response.debt.amount, 
           direction: response.debt.direction as "owedToUser" | "owedByUser",
-          description: response.debt.description || "Долг через AI",
+          description: response.debt.description || "AI",
           clientId: "unknown"
         })
-        assistantResponse = `Добавил долг для ${response.debt.clientName}: ${response.debt.amount.toLocaleString()} сум. Теперь это в долговой книге.`
+        assistantResponse = t.chat.debtAdded
+          .replace('{name}', response.debt.clientName)
+          .replace('{amount}', response.debt.amount.toLocaleString())
       } else if (response.action === "queryFinancialData" && response.query) {
-        // Mock financial data querying for the demo
         const totalSales = state.sales.reduce((acc, s) => acc + s.amount, 0)
-        assistantResponse = `Твои общие продажи составляют ${totalSales.toLocaleString()} сум. Твои дела идут хорошо!`
+        assistantResponse = t.chat.queryResult.replace('{amount}', totalSales.toLocaleString())
       } else {
-        assistantResponse = response.clarification || "Я не совсем понял команду. Попробуй перефразировать, например: 'Расход 10000 на бензин'."
+        assistantResponse = response.clarification || t.chat.unknown
       }
 
       const assistantMessage: Message = {
@@ -91,7 +97,7 @@ export function ChatInterface() {
       setMessages(prev => [...prev, {
         id: Date.now().toString(),
         role: "assistant",
-        content: "Извините, произошла ошибка. Попробуйте еще раз позже.",
+        content: t.chat.error,
         timestamp: new Date()
       }])
     } finally {
@@ -108,7 +114,7 @@ export function ChatInterface() {
           </div>
           <div>
             <h3 className="font-semibold text-foreground">SavdoBot AI</h3>
-            <p className="text-xs text-muted-foreground">Всегда готов помочь</p>
+            <p className="text-xs text-muted-foreground">Online</p>
           </div>
         </div>
       </div>
@@ -152,7 +158,7 @@ export function ChatInterface() {
               </div>
               <div className="flex items-center gap-2 rounded-2xl rounded-tl-none bg-white px-4 py-3 text-sm shadow-sm dark:bg-zinc-900">
                 <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                <span className="text-muted-foreground italic">SavdoBot думает...</span>
+                <span className="text-muted-foreground italic">{t.chat.thinking}</span>
               </div>
             </div>
           )}
@@ -173,7 +179,7 @@ export function ChatInterface() {
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Запишите продажу или спросите о прибыли..."
+            placeholder={t.chat.placeholder}
             className="h-11 rounded-full border-muted-foreground/20 px-6 focus-visible:ring-primary"
           />
           <Button 
