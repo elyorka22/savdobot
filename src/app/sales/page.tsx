@@ -4,13 +4,13 @@ import { AppShell } from "@/components/layout/app-shell"
 import { useAppStore } from "@/lib/store"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table"
-import { ShoppingCart, Plus, Search } from "lucide-react"
+import { Plus, Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 
 export default function SalesPage() {
-  const { state } = useAppStore()
+  const { state, hydrated } = useAppStore()
 
   return (
     <AppShell>
@@ -48,7 +48,7 @@ export default function SalesPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {state.sales.length > 0 ? (
+                {hydrated && state.sales.length > 0 ? (
                   state.sales.map((sale) => (
                     <TableRow key={sale.id}>
                       <TableCell className="text-muted-foreground">
@@ -60,6 +60,12 @@ export default function SalesPage() {
                       </TableCell>
                     </TableRow>
                   ))
+                ) : !hydrated ? (
+                  <TableRow>
+                    <TableCell colSpan={3} className="h-24 text-center text-muted-foreground">
+                      Загрузка...
+                    </TableCell>
+                  </TableRow>
                 ) : (
                   <TableRow>
                     <TableCell colSpan={3} className="h-24 text-center text-muted-foreground">

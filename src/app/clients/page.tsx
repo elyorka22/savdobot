@@ -3,13 +3,13 @@
 import { AppShell } from "@/components/layout/app-shell"
 import { useAppStore } from "@/lib/store"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
-import { Users, UserPlus, Phone, CreditCard, Search } from "lucide-react"
+import { UserPlus, Phone, CreditCard, Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
+import { cn } from "@/lib/utils"
 
 export default function ClientsPage() {
-  const { state } = useAppStore()
+  const { state, hydrated } = useAppStore()
 
   return (
     <AppShell>
@@ -31,7 +31,7 @@ export default function ClientsPage() {
         </div>
 
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {state.clients.length > 0 ? (
+          {hydrated && state.clients.length > 0 ? (
             state.clients.map((client) => (
               <Card key={client.id} className="group overflow-hidden transition-all hover:shadow-md">
                 <CardHeader className="flex flex-row items-center gap-4 pb-4">
@@ -63,6 +63,10 @@ export default function ClientsPage() {
                 </CardContent>
               </Card>
             ))
+          ) : !hydrated ? (
+            <div className="col-span-full flex h-48 items-center justify-center text-muted-foreground">
+              Загрузка клиентов...
+            </div>
           ) : (
             <div className="col-span-full py-12 text-center text-muted-foreground">
               Клиенты не найдены.

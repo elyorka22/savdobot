@@ -2,10 +2,26 @@
 
 import { useAppStore } from "@/lib/store"
 import { Card } from "@/components/ui/card"
-import { TrendingUp, TrendingDown, Wallet, ShoppingBag, Receipt } from "lucide-react"
+import { TrendingUp, Wallet, ShoppingBag, Receipt } from "lucide-react"
 
 export function FinancialSummary() {
-  const { state } = useAppStore()
+  const { state, hydrated } = useAppStore()
+
+  if (!hydrated) {
+    return (
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {[1, 2, 3, 4].map((i) => (
+          <Card key={i} className="flex items-center gap-4 p-5 shadow-sm">
+            <div className="h-12 w-12 animate-pulse rounded-xl bg-muted" />
+            <div className="space-y-2">
+              <div className="h-3 w-24 animate-pulse rounded bg-muted" />
+              <div className="h-5 w-32 animate-pulse rounded bg-muted" />
+            </div>
+          </Card>
+        ))}
+      </div>
+    )
+  }
 
   const totalSales = state.sales.reduce((acc, sale) => acc + sale.amount, 0)
   const totalExpenses = state.expenses.reduce((acc, exp) => acc + exp.amount, 0)

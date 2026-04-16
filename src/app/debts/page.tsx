@@ -4,12 +4,16 @@ import { AppShell } from "@/components/layout/app-shell"
 import { useAppStore } from "@/lib/store"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table"
-import { CreditCard, Plus, CheckCircle2, AlertCircle } from "lucide-react"
+import { Plus, CheckCircle2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 
 export default function DebtsPage() {
-  const { state, markDebtAsPaid } = useAppStore()
+  const { state, markDebtAsPaid, hydrated } = useAppStore()
+
+  const activeDebtTotal = state.debts
+    .filter((d) => d.status === "active" && d.direction === "owedToUser")
+    .reduce((acc, d) => acc + d.amount, 0)
 
   return (
     <AppShell>
@@ -36,7 +40,7 @@ export default function DebtsPage() {
             <CardContent className="pt-6">
               <p className="text-xs font-medium text-amber-600 uppercase">Ожидается выплат</p>
               <p className="text-2xl font-bold text-amber-700">
-                {state.debts.filter(d => d.status === "active").reduce((acc, d) => acc + d.amount, 0).toLocaleString()} сум
+                {hydrated ? activeDebtTotal.toLocaleString() : "..."} сум
               </p>
             </CardContent>
           </Card>
@@ -64,7 +68,7 @@ export default function DebtsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {state.debts.length > 0 ? (
+                {hydrated && state.debts.length > 0 ? (
                   state.debts.map((debt) => (
                     <TableRow key={debt.id}>
                       <TableCell className="font-semibold">{debt.clientName}</TableCell>
@@ -94,6 +98,12 @@ export default function DebtsPage() {
                       </TableCell>
                     </TableRow>
                   ))
+                ) : !hydrated ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
+                      Загрузка данных...
+                    </TableCell>
+                  </TableRow>
                 ) : (
                   <TableRow>
                     <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
