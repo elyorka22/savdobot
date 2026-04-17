@@ -1,7 +1,6 @@
 import type {Metadata} from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
-import { ErrorBoundary } from "@/components/ui/error-boundary";
 
 export const metadata: Metadata = {
   title: 'SavdoBot - AI POS Sistema',
@@ -21,21 +20,8 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
       </head>
       <body className="font-body antialiased">
-        <ErrorBoundary
-          onError={(error, errorInfo) => {
-            // Log errors to console in development
-            if (process.env.NODE_ENV === "development") {
-              console.error("Layout Error Boundary:", error, errorInfo);
-            }
-            // In production, send to error reporting service
-            if (process.env.NODE_ENV === "production") {
-              // Example: Sentry.captureException(error, { contexts: { react: { componentStack: errorInfo.componentStack } } });
-            }
-          }}
-        >
-          {children}
-          <Toaster />
-        </ErrorBoundary>
+        {children}
+        <Toaster />
       </body>
     </html>
   );
