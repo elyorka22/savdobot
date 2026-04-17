@@ -281,7 +281,7 @@ export function ModernTable<T extends { id: string }>({
                         {column.render ? (
                           column.render(row[column.key], row)
                         ) : (
-                          row[column.key]
+                          String(row[column.key])
                         )}
                       </TableCell>
                     ))}
