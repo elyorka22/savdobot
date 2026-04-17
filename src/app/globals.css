@@ -11,6 +11,18 @@
     --card-foreground: 240 10% 15%;
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 15%;
+    --border: 228 25% 95%;
+    --input: 228 25% 95%;
+    --ring: 221 83% 53%;
+    --muted: 228 25% 95%;
+    --muted-foreground: 240 8% 46%;
+    --accent: 340 82% 52%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --secondary: 274 91% 67%;
+    --secondary-foreground: 0 0% 100%;
+    --radius: 0.5rem;
     
     /* Vibrant primary gradient colors */
     --primary: 221 83% 53%; /* Bright blue */
