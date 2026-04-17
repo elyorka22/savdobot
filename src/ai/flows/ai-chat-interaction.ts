@@ -14,6 +14,7 @@ import {z} from 'genkit';
 
 const AiChatInteractionInputSchema = z.object({
   message: z.string().describe('The user\'s chat message in Russian or Uzbek, containing a command or query.'),
+  currentDateTime: z.string().describe('Current real date and time in ISO format from the user device.'),
   recentMessages: z.array(
     z.object({
       role: z.enum(['assistant', 'user']),
@@ -92,8 +93,10 @@ Here are the rules you must follow:
 4.  **Debt Direction**: If the user says something like "У меня есть долг у клиента Азиз 100 000 сум" or "Клиент Азиз должен 100 000 сум", set 'debt.direction' to 'owedToUser'. If the user says "Я должен клиенту Азиз 100 000 сум", set 'debt.direction' to 'owedByUser'.
 5.  **Query Period**: For queries, correctly identify the 'period' (e.g., 'today', 'this_week', 'this_month'). If a specific date range is provided (e.g., "с 1 января по 5 февраля"), set 'period' to 'custom' and extract 'startDate' and 'endDate' in YYYY-MM-DD format.
 6.  **Unknown Intent**: If the user's command is ambiguous, incomplete, or cannot be mapped to any defined action, set the 'action' to 'unknown' and provide a 'clarification' message in Russian or Uzbek asking the user to provide more details.
-7.  **Reminders**: If user asks to remember/remind something at a specific time (e.g., "напомни встречу в 16:00"), set action to 'recordReminder', fill 'reminder.text', and parse time in HH:mm. Add 'date' only if explicitly provided.
-8.  **JSON Format**: Your response MUST be a JSON object that strictly adheres to the provided schema.
+7.  **Current Date/Time Source**: Treat this value as the real current time: {{{currentDateTime}}}. Use it for interpreting relative dates (today, tomorrow) and for year resolution.
+8.  **Reminders**: If user asks to remember/remind something at a specific time (e.g., "напомни встречу в 16:00"), set action to 'recordReminder', fill 'reminder.text', and parse time in HH:mm. Add 'date' only if explicitly provided.
+    If date is implied without year, use the current year from {{{currentDateTime}}}.
+9.  **JSON Format**: Your response MUST be a JSON object that strictly adheres to the provided schema.
 
 User Message: {{{message}}}
 

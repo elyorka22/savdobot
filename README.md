@@ -10,6 +10,11 @@ Main business entities (sales, expenses, debts, clients, reminders) are persiste
 2. Fill required values in `.env`:
    - `DEEPSEEK_API_KEY`
    - `DATABASE_URL`
+   - `NEXT_PUBLIC_VAPID_PUBLIC_KEY`
+   - `VAPID_PUBLIC_KEY`
+   - `VAPID_PRIVATE_KEY`
+   - `WEB_PUSH_SUBJECT`
+   - `REMINDER_DISPATCH_SECRET`
 3. Install dependencies:
    - `npm install`
 4. Start development server:
@@ -40,3 +45,22 @@ If you run for the first time, apply database migrations:
 - Run local migration: `npm run db:migrate:dev`
 - Apply production migrations: `npm run db:migrate:deploy`
 - Open Prisma Studio: `npm run db:studio`
+
+## Real push notifications to phone
+
+SavdoBot supports Web Push notifications (similar to real messenger apps behavior).
+When reminder time comes, notification is sent to subscribed devices and appears with system sound/vibration.
+
+1. Generate VAPID keys:
+   - `npx web-push generate-vapid-keys`
+2. Put keys into environment variables:
+   - `NEXT_PUBLIC_VAPID_PUBLIC_KEY`
+   - `VAPID_PUBLIC_KEY`
+   - `VAPID_PRIVATE_KEY`
+   - `WEB_PUSH_SUBJECT` (example: `mailto:you@example.com`)
+   - `REMINDER_DISPATCH_SECRET` (random strong string for cron authorization)
+3. Open app from phone browser, allow notifications, and add app to home screen (recommended).
+4. Ensure reminder dispatcher endpoint runs periodically:
+   - `POST /api/reminders/dispatch`
+   - add header: `x-cron-secret: <REMINDER_DISPATCH_SECRET>`
+   - on Railway, configure Cron to call this endpoint every minute.

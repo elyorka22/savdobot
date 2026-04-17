@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useRef, useEffect } from "react"
-import { Send, Bot, User, Loader2, Sparkles, Mic } from "lucide-react"
+import { Send, Bot, Loader2, Sparkles, Mic } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -48,6 +48,20 @@ const parseEventDate = (date?: string, time?: string) => {
   }
 
   return baseDate
+}
+
+const isDateTimeQuestion = (text: string) => {
+  const normalized = text.toLowerCase()
+  const hasHourQuestion = normalized.includes("час") && (normalized.includes("котор") || normalized.includes("сколько"))
+  return (
+    hasHourQuestion ||
+    normalized.includes("сколько времени") ||
+    normalized.includes("какая дата") ||
+    normalized.includes("сегодняшняя дата") ||
+    normalized.includes("hozir soat nechchi") ||
+    normalized.includes("soat nechchi") ||
+    normalized.includes("bugun sana")
+  )
 }
 
 export function ChatInterface() {
@@ -114,11 +128,27 @@ export function ChatInterface() {
     setIsLoading(true)
 
     try {
+      if (isDateTimeQuestion(input)) {
+        const now = new Date()
+        const assistantMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          role: "assistant",
+          content: `Сейчас: ${now.toLocaleString()}`,
+          timestamp: now,
+        }
+        setMessages(prev => limitMessages([...prev, assistantMessage]))
+        return
+      }
+
       const recentMessages = nextMessages
         .slice(-CONTEXT_MESSAGES_COUNT)
         .map((message) => ({ role: message.role, content: message.content }))
 
-      const response = await aiChatInteraction({ message: input, recentMessages })
+      const response = await aiChatInteraction({
+        message: input,
+        currentDateTime: new Date().toISOString(),
+        recentMessages,
+      })
       
       let assistantResponse = ""
 
@@ -185,44 +215,38 @@ export function ChatInterface() {
   }
 
   return (
-    <Card className="flex h-[calc(100vh-12rem)] flex-col overflow-hidden border-none bg-white/50 shadow-xl backdrop-blur-sm dark:bg-zinc-950/50">
-      <div className="flex items-center justify-between border-b px-6 py-4">
+    <Card className="flex h-[calc(100vh-8rem)] flex-col overflow-hidden rounded-2xl border bg-white shadow-sm">
+      <div className="flex items-center justify-between border-b bg-white px-4 py-3">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
-            <Sparkles className="h-5 w-5" />
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-sky-100 text-sky-600">
+            <Sparkles className="h-4 w-4" />
           </div>
           <div>
-            <h3 className="font-semibold text-foreground">SavdoBot AI</h3>
-            <p className="text-xs text-muted-foreground">Online</p>
+            <h3 className="text-sm font-semibold text-zinc-900">SavdoBot AI</h3>
+            <p className="text-xs text-emerald-600">online</p>
           </div>
         </div>
       </div>
 
-      <ScrollArea className="flex-1 p-6" ref={scrollRef}>
-        <div className="space-y-6">
+      <ScrollArea className="flex-1 bg-zinc-50 p-4" ref={scrollRef}>
+        <div className="space-y-3">
           {messages.map((message) => (
             <div
               key={message.id}
               className={cn(
-                "flex w-full items-start gap-3",
+                "flex w-full items-end",
                 message.role === "user" ? "flex-row-reverse" : "flex-row"
               )}
             >
               <div className={cn(
-                "flex h-8 w-8 shrink-0 items-center justify-center rounded-full border shadow-sm",
-                message.role === "assistant" ? "bg-primary/10 text-primary" : "bg-accent/10 text-accent"
-              )}>
-                {message.role === "assistant" ? <Bot className="h-4 w-4" /> : <User className="h-4 w-4" />}
-              </div>
-              <div className={cn(
-                "max-w-[80%] rounded-2xl px-4 py-3 text-sm shadow-sm",
+                "max-w-[82%] rounded-2xl px-3 py-2 text-sm shadow-sm",
                 message.role === "assistant" 
-                  ? "rounded-tl-none bg-white text-foreground dark:bg-zinc-900" 
-                  : "rounded-tr-none bg-primary text-primary-foreground"
+                  ? "rounded-bl-md border border-zinc-200 bg-white text-zinc-900" 
+                  : "rounded-br-md bg-emerald-100 text-zinc-900"
               )}>
                 {message.content}
                 <div className={cn(
-                  "mt-1 text-[10px] opacity-50",
+                  "mt-1 text-[10px] text-zinc-500",
                   message.role === "user" ? "text-right" : "text-left"
                 )}>
                   {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -231,40 +255,40 @@ export function ChatInterface() {
             </div>
           ))}
           {isLoading && (
-            <div className="flex items-start gap-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full border bg-primary/10 text-primary shadow-sm">
+            <div className="flex items-end">
+              <div className="mr-2 flex h-7 w-7 items-center justify-center rounded-full border border-zinc-200 bg-white text-sky-600">
                 <Bot className="h-4 w-4" />
               </div>
-              <div className="flex items-center gap-2 rounded-2xl rounded-tl-none bg-white px-4 py-3 text-sm shadow-sm dark:bg-zinc-900">
-                <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                <span className="text-muted-foreground italic">{t.chat.thinking}</span>
+              <div className="flex items-center gap-2 rounded-2xl rounded-bl-md border border-zinc-200 bg-white px-3 py-2 text-sm shadow-sm">
+                <Loader2 className="h-4 w-4 animate-spin text-sky-600" />
+                <span className="text-zinc-500 italic">{t.chat.thinking}</span>
               </div>
             </div>
           )}
         </div>
       </ScrollArea>
 
-      <div className="border-t bg-white p-4 dark:bg-zinc-950">
+      <div className="border-t bg-white p-3">
         <form
           onSubmit={(e) => {
             e.preventDefault()
             handleSend()
           }}
-          className="flex items-center gap-2"
+          className="flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-2 py-1"
         >
-          <Button type="button" variant="ghost" size="icon" className="rounded-full text-muted-foreground hover:text-primary">
+          <Button type="button" variant="ghost" size="icon" className="rounded-full text-zinc-400 hover:text-sky-600">
             <Mic className="h-5 w-5" />
           </Button>
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder={t.chat.placeholder}
-            className="h-11 rounded-full border-muted-foreground/20 px-6 focus-visible:ring-primary"
+            className="h-10 border-0 bg-transparent px-2 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
           />
           <Button 
             type="submit" 
             disabled={!input.trim() || isLoading} 
-            className="h-11 w-11 rounded-full bg-primary p-0 shadow-lg shadow-primary/20 hover:bg-primary/90"
+            className="h-10 w-10 rounded-full bg-sky-500 p-0 hover:bg-sky-600"
           >
             <Send className="h-5 w-5" />
           </Button>

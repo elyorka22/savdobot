@@ -40,6 +40,13 @@ import { useAppStore } from "@/lib/store"
 import { translations } from "@/lib/translations"
 import { toast } from "@/hooks/use-toast"
 
+const urlBase64ToUint8Array = (base64String: string) => {
+  const padding = "=".repeat((4 - (base64String.length % 4)) % 4)
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/")
+  const rawData = window.atob(base64)
+  return Uint8Array.from([...rawData].map((char) => char.charCodeAt(0)))
+}
+
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const { state, setLanguage, markReminderNotified } = useAppStore()
@@ -55,35 +62,74 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   ]
 
   React.useEffect(() => {
-    if (typeof window === "undefined") return
+    if (!("serviceWorker" in navigator) || !("PushManager" in window)) return
 
-    if ("Notification" in window && Notification.permission === "default") {
-      Notification.requestPermission().catch(() => {})
+    const registerPush = async () => {
+      try {
+        const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
+        if (!vapidPublicKey) return
+
+        const registration = await navigator.serviceWorker.register("/sw.js")
+        const permission = await Notification.requestPermission()
+        if (permission !== "granted") return
+
+        const existing = await registration.pushManager.getSubscription()
+        const subscription =
+          existing ??
+          (await registration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
+          }))
+
+        await fetch("/api/push/subscribe", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(subscription),
+        })
+      } catch (error) {
+        console.error("Failed to register push notifications", error)
+      }
     }
 
-    const interval = window.setInterval(() => {
-      const now = Date.now()
-      const dueReminders = (state.reminders || []).filter((item) => {
-        if (item.status !== "active" || item.notified) return false
-        return new Date(item.remindAt).getTime() <= now
-      })
+    registerPush()
+  }, [])
 
-      dueReminders.forEach((item) => {
-        toast({
-          title: "Напоминание",
-          description: item.text,
+  React.useEffect(() => {
+    if (typeof window === "undefined") return
+
+    const interval = window.setInterval(async () => {
+      try {
+        const response = await fetch("/api/reminders/dispatch", {
+          method: "POST",
+          cache: "no-store",
         })
 
-        if ("Notification" in window && Notification.permission === "granted") {
-          new Notification("Напоминание SavdoBot", { body: item.text })
+        if (response.status === 401) {
+          // In production dispatch is expected to be called by secure cron.
+          return
         }
 
-        void markReminderNotified(item.id)
-      })
+        if (!response.ok) {
+          throw new Error("Dispatch request failed")
+        }
+
+        const payload = (await response.json()) as { dispatched?: Array<{ id: string; text: string }> }
+        const dispatched = payload.dispatched ?? []
+
+        dispatched.forEach((item) => {
+          toast({
+            title: "Напоминание",
+            description: item.text,
+          })
+          void markReminderNotified(item.id)
+        })
+      } catch (error) {
+        console.error("Failed to dispatch reminders", error)
+      }
     }, 30000)
 
     return () => window.clearInterval(interval)
-  }, [state.reminders, markReminderNotified])
+  }, [markReminderNotified])
 
   return (
     <SidebarProvider>

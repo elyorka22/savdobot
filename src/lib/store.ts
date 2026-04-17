@@ -65,6 +65,8 @@ const initialData: AppState = {
   language: "ru"
 }
 
+const createLocalId = () => Math.random().toString(36).slice(2, 11)
+
 export function useAppStore() {
   const [state, setState] = useState<AppState>(initialData)
   const [hydrated, setHydrated] = useState(false)
@@ -74,11 +76,7 @@ export function useAppStore() {
       try {
         const languageFromStorage = localStorage.getItem(LANGUAGE_STORAGE_KEY) as AppState["language"] | null
         const response = await fetch("/api/bootstrap", { cache: "no-store" })
-        if (!response.ok) {
-          throw new Error("Failed to load bootstrap data")
-        }
-
-        const payload = await response.json()
+        const payload = response.ok ? await response.json() : initialData
         setState({
           sales: payload.sales ?? [],
           expenses: payload.expenses ?? [],
@@ -99,36 +97,70 @@ export function useAppStore() {
   }, [])
 
   const addSale = async (sale: Omit<Sale, "id" | "date">) => {
+    const localSale: Sale = {
+      id: createLocalId(),
+      amount: sale.amount,
+      description: sale.description,
+      date: new Date().toISOString(),
+    }
+
     const response = await fetch("/api/sales", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(sale),
     })
-    if (!response.ok) return
-    const createdSale = (await response.json()) as Sale
+    const createdSale = response.ok ? ((await response.json()) as Sale) : localSale
     setState(prev => ({ ...prev, sales: [createdSale, ...prev.sales] }))
   }
 
   const addExpense = async (expense: Omit<Expense, "id" | "date">) => {
+    const localExpense: Expense = {
+      id: createLocalId(),
+      amount: expense.amount,
+      description: expense.description,
+      date: new Date().toISOString(),
+    }
+
     const response = await fetch("/api/expenses", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(expense),
     })
-    if (!response.ok) return
-    const createdExpense = (await response.json()) as Expense
+    const createdExpense = response.ok ? ((await response.json()) as Expense) : localExpense
     setState(prev => ({ ...prev, expenses: [createdExpense, ...prev.expenses] }))
   }
 
   const addDebt = async (debt: Omit<Debt, "id" | "date" | "status">) => {
+    const localClient = state.clients.find((item) => item.name.toLowerCase() === debt.clientName.toLowerCase()) ?? {
+      id: createLocalId(),
+      name: debt.clientName,
+      totalDebt: 0,
+    }
+    const localAdjustment = debt.direction === "owedToUser" ? debt.amount : -debt.amount
+    const localUpdatedClient: Client = {
+      ...localClient,
+      totalDebt: localClient.totalDebt + localAdjustment,
+    }
+    const localDebt: Debt = {
+      id: createLocalId(),
+      clientId: localUpdatedClient.id,
+      clientName: localUpdatedClient.name,
+      amount: debt.amount,
+      direction: debt.direction,
+      description: debt.description,
+      dueDate: debt.dueDate,
+      date: new Date().toISOString(),
+      status: "active",
+    }
+
     const response = await fetch("/api/debts", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(debt),
     })
-    if (!response.ok) return
-
-    const payload = await response.json() as { debt: Debt; client: Client }
+    const payload = response.ok
+      ? ((await response.json()) as { debt: Debt; client: Client })
+      : { debt: localDebt, client: localUpdatedClient }
     setState(prev => {
       const nextClients = prev.clients.some((item) => item.id === payload.client.id)
         ? prev.clients.map((item) => (item.id === payload.client.id ? payload.client : item))
@@ -144,7 +176,22 @@ export function useAppStore() {
 
   const markDebtAsPaid = async (debtId: string) => {
     const response = await fetch(`/api/debts/${debtId}/pay`, { method: "PATCH" })
-    if (!response.ok) return
+    if (!response.ok) {
+      setState(prev => {
+        const targetDebt = prev.debts.find((item) => item.id === debtId)
+        if (!targetDebt || targetDebt.status === "paid") return prev
+        const adjustment = targetDebt.direction === "owedToUser" ? -targetDebt.amount : targetDebt.amount
+
+        return {
+          ...prev,
+          clients: prev.clients.map((item) =>
+            item.id === targetDebt.clientId ? { ...item, totalDebt: item.totalDebt + adjustment } : item
+          ),
+          debts: prev.debts.map((item) => (item.id === debtId ? { ...item, status: "paid" } : item)),
+        }
+      })
+      return
+    }
 
     const payload = await response.json() as { debt: Debt; client: Client }
     setState(prev => ({
@@ -155,19 +202,34 @@ export function useAppStore() {
   }
 
   const addReminder = async (reminder: Omit<Reminder, "id" | "createdAt" | "notified" | "status">) => {
+    const localReminder: Reminder = {
+      id: createLocalId(),
+      text: reminder.text,
+      eventAt: reminder.eventAt,
+      remindAt: reminder.remindAt,
+      notified: false,
+      status: "active",
+      createdAt: new Date().toISOString(),
+    }
+
     const response = await fetch("/api/reminders", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(reminder),
     })
-    if (!response.ok) return
-    const createdReminder = (await response.json()) as Reminder
+    const createdReminder = response.ok ? ((await response.json()) as Reminder) : localReminder
     setState(prev => ({ ...prev, reminders: [createdReminder, ...prev.reminders] }))
   }
 
   const markReminderNotified = async (reminderId: string) => {
     const response = await fetch(`/api/reminders/${reminderId}/notified`, { method: "PATCH" })
-    if (!response.ok) return
+    if (!response.ok) {
+      setState(prev => ({
+        ...prev,
+        reminders: prev.reminders.map((item) => (item.id === reminderId ? { ...item, notified: true } : item)),
+      }))
+      return
+    }
     const updatedReminder = (await response.json()) as Reminder
     setState(prev => ({
       ...prev,
@@ -177,7 +239,13 @@ export function useAppStore() {
 
   const markReminderDone = async (reminderId: string) => {
     const response = await fetch(`/api/reminders/${reminderId}/done`, { method: "PATCH" })
-    if (!response.ok) return
+    if (!response.ok) {
+      setState(prev => ({
+        ...prev,
+        reminders: prev.reminders.map((item) => (item.id === reminderId ? { ...item, status: "done" } : item)),
+      }))
+      return
+    }
     const updatedReminder = (await response.json()) as Reminder
     setState(prev => ({
       ...prev,

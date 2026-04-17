@@ -31,7 +31,13 @@ export async function GET() {
       })),
     })
   } catch (error) {
-    console.error("Failed to load bootstrap data", error)
-    return NextResponse.json({ error: "Failed to load data" }, { status: 500 })
+    console.error("Failed to load bootstrap data, using fallback", error)
+    return NextResponse.json({
+      sales: [],
+      expenses: [],
+      clients: [],
+      debts: [],
+      reminders: [],
+    })
   }
 }
