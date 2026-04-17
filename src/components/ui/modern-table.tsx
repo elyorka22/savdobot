@@ -263,7 +263,7 @@ export function ModernTable<T extends { id: string }>({
                   <TableRow 
                     key={row.id}
                     className={cn(
-                      "hover:bg-muted/30 transition-colors",
+                      "hover:bg-muted/30 transition-colors active:bg-muted/50",
                       selectedRows.has(row.id) && "bg-muted/50"
                     )}
                   >
@@ -277,9 +277,9 @@ export function ModernTable<T extends { id: string }>({
                     )}
                     
                     {columns.map((column) => (
-                      <TableCell key={String(column.key)} className={column.className}>
+                      <TableCell key={String(column.key)} className={cn("p-2 md:p-3", column.className)}>
                         {column.render ? (
-                          column.render(row[column.key], row)
+                          column.render(String(row[column.key]), row)
                         ) : (
                           String(row[column.key])
                         )}
@@ -290,7 +290,7 @@ export function ModernTable<T extends { id: string }>({
                       <TableCell>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <Button variant="ghost" size="icon" className="h-9 w-9 p-2 md:h-8 md:w-8 md:p-3 min-h-[36px] min-w-[36px]">
                               <MoreHorizontal className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
