@@ -6,11 +6,8 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Separator } from "@/components/ui/separator"
-import { 
-  ModernHeader, 
-  ModernStatsCard, 
-  ModernStatsGrid 
-} from "@/components/layout/modern-header"
+import { ModernHeader } from "@/components/layout/modern-header"
+import { ModernStatsCard, ModernStatsGrid } from "@/components/ui/modern-stats-card"
 import { ModernStatsCard as StatsCard } from "@/components/ui/modern-stats-card"
 import { ModernTable } from "@/components/ui/modern-table"
 import { ModernForm, QuickForm } from "@/components/ui/modern-form"

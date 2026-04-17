@@ -9,7 +9,9 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: false,
   },
   experimental: {
-    serverActions: true,
+    serverActions: {
+      allowedOrigins: ["*"],
+    },
   },
   images: {
     remotePatterns: [
