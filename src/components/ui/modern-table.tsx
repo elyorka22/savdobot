@@ -197,8 +197,11 @@ export function ModernTable<T extends { id: string }>({
                   <TableHead className="w-12">
                     <Checkbox
                       checked={isAllSelected}
-                      ref={isIndeterminate ? (el: HTMLInputElement) => {
-                        if (el) el.indeterminate = isIndeterminate
+                      ref={isIndeterminate ? (el: HTMLButtonElement) => {
+                        if (el) {
+                          const input = el.querySelector('input[type="checkbox"]') as HTMLInputElement
+                          if (input) input.indeterminate = isIndeterminate
+                        }
                       } : undefined}
                       onCheckedChange={handleSelectAll}
                     />
