@@ -31,6 +31,12 @@ export const translations = {
       debtAdded: "Добавил долг для {name}: {amount} сум. Теперь это в долговой книге.",
       reminderAdded: "Запомнил. Напомню: '{text}' в {time}. Предупрежу за 5 минут.",
       queryResult: "Твои общие продажи составляют {amount} сум. Твои дела идут хорошо!",
+      reportSales: "Продажи: {amount} сум.",
+      reportExpenses: "Расходы: {amount} сум.",
+      reportProfit: "Прибыль: {amount} сум.",
+      reportDebts: "Долги клиентов: {activeCount} активных, общая сумма {amount} сум.",
+      reportReminders: "Напоминания: активных {activeCount}, выполненных {doneCount}, уже отправленных уведомлений {notifiedCount}.",
+      reportAll: "Сводка: продажи {sales} сум, расходы {expenses} сум, прибыль {profit} сум, активные долги {debts} сум ({debtCount}), активные напоминания {activeReminders}, отправленные уведомления {notifiedReminders}.",
       unknown: "Я не совсем понял команду. Попробуй перефразировать, например: 'Расход 10000 на бензин'."
     },
     sales: {
@@ -131,6 +137,12 @@ export const translations = {
       debtAdded: "{name} uchun {amount} so'm qarz qo'shildi. Endi bu qarz daftarchasida.",
       reminderAdded: "Eslab qoldim. '{text}' uchun {time} da eslataman. 5 daqiqa oldin ogohlantiraman.",
       queryResult: "Umumiy sotuvlaringiz {amount} so'mni tashkil qiladi. Ishlaringiz juda yaxshi!",
+      reportSales: "Sotuvlar: {amount} so'm.",
+      reportExpenses: "Xarajatlar: {amount} so'm.",
+      reportProfit: "Foyda: {amount} so'm.",
+      reportDebts: "Mijozlar qarzi: {activeCount} ta faol, umumiy summa {amount} so'm.",
+      reportReminders: "Eslatmalar: faol {activeCount}, bajarilgan {doneCount}, yuborilgan bildirishnomalar {notifiedCount}.",
+      reportAll: "Umumiy hisobot: sotuvlar {sales} so'm, xarajatlar {expenses} so'm, foyda {profit} so'm, faol qarzlar {debts} so'm ({debtCount}), faol eslatmalar {activeReminders}, yuborilgan bildirishnomalar {notifiedReminders}.",
       unknown: "Buyruqni tushunmadim. Iltimos, boshqacha ayting, masalan: 'Benzin uchun 10000 xarajat'."
     },
     sales: {

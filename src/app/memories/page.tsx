@@ -25,7 +25,7 @@ export default function MemoriesPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             {!hydrated ? (
-              <p className="text-sm text-muted-foreground">Загрузка...</p>
+              <p className="text-sm text-muted-foreground">{state.language === "uz" ? "Yuklanmoqda..." : "Загрузка..."}</p>
             ) : state.reminders.length === 0 ? (
               <p className="text-sm text-muted-foreground">{t.reminders.empty}</p>
             ) : (

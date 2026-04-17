@@ -56,7 +56,7 @@ const AiChatInteractionOutputSchema = z.object({
 
   // Details for querying financial data. Present only if action is "queryFinancialData".
   query: z.object({
-    dataType: z.enum(['profit', 'earnings', 'sales', 'expenses', 'debts', 'all']).describe('The type of financial data to query.'),
+    dataType: z.enum(['profit', 'earnings', 'sales', 'expenses', 'debts', 'reminders', 'all']).describe('The type of financial data to query.'),
     period: z.enum(['today', 'yesterday', 'this_week', 'last_week', 'this_month', 'last_month', 'this_year', 'custom']).describe('The period for the query.'),
     startDate: z.string().optional().describe('Start date for a custom query period in YYYY-MM-DD format (e.g., 2023-01-01). Required if period is "custom".'),
     endDate: z.string().optional().describe('End date for a custom query period in YYYY-MM-DD format (e.g., 2023-01-31). Required if period is "custom".'),
@@ -92,6 +92,7 @@ Here are the rules you must follow:
 3.  **Data Extraction**: For the identified action, extract all relevant details and populate the corresponding nested object (e.g., 'sale', 'expense', 'debt', 'query') in the JSON output. All amounts are in Uzbek Sum (UZS).
 4.  **Debt Direction**: If the user says something like "У меня есть долг у клиента Азиз 100 000 сум" or "Клиент Азиз должен 100 000 сум", set 'debt.direction' to 'owedToUser'. If the user says "Я должен клиенту Азиз 100 000 сум", set 'debt.direction' to 'owedByUser'.
 5.  **Query Period**: For queries, correctly identify the 'period' (e.g., 'today', 'this_week', 'this_month'). If a specific date range is provided (e.g., "с 1 января по 5 февраля"), set 'period' to 'custom' and extract 'startDate' and 'endDate' in YYYY-MM-DD format.
+   If user asks about reminders/notifications/reminds, set query.dataType to 'reminders'.
 6.  **Unknown Intent**: If the user's command is ambiguous, incomplete, or cannot be mapped to any defined action, set the 'action' to 'unknown' and provide a 'clarification' message in Russian or Uzbek asking the user to provide more details.
 7.  **Current Date/Time Source**: Treat this value as the real current time: {{{currentDateTime}}}. Use it for interpreting relative dates (today, tomorrow) and for year resolution.
 8.  **Reminders**: If user asks to remember/remind something at a specific time (e.g., "напомни встречу в 16:00"), set action to 'recordReminder', fill 'reminder.text', and parse time in HH:mm. Add 'date' only if explicitly provided.

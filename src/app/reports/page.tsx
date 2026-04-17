@@ -11,39 +11,57 @@ import {
   CartesianGrid, 
   Tooltip, 
   ResponsiveContainer,
-  LineChart,
-  Line,
   Cell
 } from "recharts"
-import { Sparkles, TrendingUp, ArrowUpRight, ArrowDownRight } from "lucide-react"
+import { Sparkles } from "lucide-react"
+import { translations } from "@/lib/translations"
 
 export default function ReportsPage() {
   const { state } = useAppStore()
+  const t = translations[state.language as keyof typeof translations] || translations.ru
 
   // Simplified chart data
-  const chartData = [
-    { name: "Пн", value: 120000 },
-    { name: "Вт", value: 95000 },
-    { name: "Ср", value: 150000 },
-    { name: "Чт", value: 80000 },
-    { name: "Пт", value: 210000 },
-    { name: "Сб", value: 250000 },
-    { name: "Вс", value: 180000 },
-  ]
+  const chartData =
+    state.language === "uz"
+      ? [
+          { name: "Du", value: 120000 },
+          { name: "Se", value: 95000 },
+          { name: "Ch", value: 150000 },
+          { name: "Pa", value: 80000 },
+          { name: "Ju", value: 210000 },
+          { name: "Sh", value: 250000 },
+          { name: "Ya", value: 180000 },
+        ]
+      : [
+          { name: "Пн", value: 120000 },
+          { name: "Вт", value: 95000 },
+          { name: "Ср", value: 150000 },
+          { name: "Чт", value: 80000 },
+          { name: "Пт", value: 210000 },
+          { name: "Сб", value: 250000 },
+          { name: "Вс", value: 180000 },
+        ]
 
-  const categoryData = [
-    { name: "Продукты", value: 450000, color: "#268FDF" },
-    { name: "Хозтовары", value: 220000, color: "#6354DB" },
-    { name: "Напитки", value: 180000, color: "#10B981" },
-  ]
+  const categoryData =
+    state.language === "uz"
+      ? [
+          { name: "Oziq-ovqat", value: 450000, color: "#268FDF" },
+          { name: "Xo'jalik", value: 220000, color: "#6354DB" },
+          { name: "Ichimliklar", value: 180000, color: "#10B981" },
+        ]
+      : [
+          { name: "Продукты", value: 450000, color: "#268FDF" },
+          { name: "Хозтовары", value: 220000, color: "#6354DB" },
+          { name: "Напитки", value: 180000, color: "#10B981" },
+        ]
 
   return (
     <AppShell>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold tracking-tight text-foreground">Аналитика</h2>
-            <p className="text-muted-foreground">Визуальные отчеты о росте вашего бизнеса.</p>
+            <h2 className="text-2xl font-bold tracking-tight text-foreground">{t.reports.title}</h2>
+            <p className="text-muted-foreground">{t.reports.subtitle}</p>
           </div>
         </div>
 
@@ -53,15 +71,13 @@ export default function ReportsPage() {
               <Sparkles className="h-5 w-5" />
             </div>
             <div>
-              <CardTitle className="text-lg">AI-Инсайт недели</CardTitle>
-              <CardDescription className="text-primary/70">Анализ подготовлен SavdoBot</CardDescription>
+              <CardTitle className="text-lg">{t.reports.insightTitle}</CardTitle>
+              <CardDescription className="text-primary/70">{t.reports.insightSubtitle}</CardDescription>
             </div>
           </CardHeader>
           <CardContent>
             <p className="text-foreground/90 leading-relaxed">
-              Ваши продажи в пятницу и субботу выросли на 25% по сравнению с прошлым периодом. 
-              Наиболее популярная категория — <strong>"Продукты"</strong>. 
-              Рекомендуем пополнить запасы к следующему уикенду.
+              {t.reports.insightText}
             </p>
           </CardContent>
         </Card>
@@ -69,7 +85,7 @@ export default function ReportsPage() {
         <div className="grid gap-6 md:grid-cols-2">
           <Card>
             <CardHeader>
-              <CardTitle className="text-base font-semibold">Продажи по дням</CardTitle>
+              <CardTitle className="text-base font-semibold">{t.reports.salesByDay}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="h-[300px] w-full">
@@ -91,7 +107,7 @@ export default function ReportsPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-base font-semibold">Категории доходов</CardTitle>
+              <CardTitle className="text-base font-semibold">{t.reports.categories}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="h-[300px] w-full">

@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useRef, useEffect } from "react"
-import { Send, Bot, Loader2, Sparkles, Mic } from "lucide-react"
+import { Send, Bot, Loader2, Mic } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -62,6 +62,28 @@ const isDateTimeQuestion = (text: string) => {
     normalized.includes("soat nechchi") ||
     normalized.includes("bugun sana")
   )
+}
+
+const detectDirectReportType = (text: string): "sales" | "expenses" | "profit" | "debts" | "reminders" | "all" | null => {
+  const normalized = text.toLowerCase()
+  const isReportIntent =
+    normalized.includes("отчет") ||
+    normalized.includes("hisobot") ||
+    normalized.includes("report") ||
+    normalized.includes("сводк") ||
+    normalized.includes("statistika") ||
+    normalized.includes("статистик")
+
+  if (!isReportIntent) {
+    return null
+  }
+
+  if (normalized.includes("долг") || normalized.includes("qarz")) return "debts"
+  if (normalized.includes("напомин") || normalized.includes("уведомл") || normalized.includes("eslatma") || normalized.includes("bildirish")) return "reminders"
+  if (normalized.includes("расход") || normalized.includes("xarajat")) return "expenses"
+  if (normalized.includes("прибыл") || normalized.includes("foyda")) return "profit"
+  if (normalized.includes("продаж") || normalized.includes("sotuv")) return "sales"
+  return "all"
 }
 
 export function ChatInterface() {
@@ -140,6 +162,50 @@ export function ChatInterface() {
         return
       }
 
+      const directReportType = detectDirectReportType(input)
+      if (directReportType) {
+        const totalSales = state.sales.reduce((acc, s) => acc + s.amount, 0)
+        const totalExpenses = state.expenses.reduce((acc, s) => acc + s.amount, 0)
+        const totalProfit = totalSales - totalExpenses
+        const activeDebts = state.debts.filter((item) => item.status === "active" && item.direction === "owedToUser")
+        const totalDebts = activeDebts.reduce((acc, item) => acc + item.amount, 0)
+        const activeReminders = state.reminders.filter((item) => item.status === "active")
+        const doneReminders = state.reminders.filter((item) => item.status === "done")
+        const notifiedReminders = state.reminders.filter((item) => item.notified)
+
+        const assistantMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          role: "assistant",
+          content:
+            directReportType === "sales"
+              ? t.chat.reportSales.replace("{amount}", totalSales.toLocaleString())
+              : directReportType === "expenses"
+                ? t.chat.reportExpenses.replace("{amount}", totalExpenses.toLocaleString())
+                : directReportType === "profit"
+                  ? t.chat.reportProfit.replace("{amount}", totalProfit.toLocaleString())
+                  : directReportType === "debts"
+                    ? t.chat.reportDebts
+                        .replace("{activeCount}", String(activeDebts.length))
+                        .replace("{amount}", totalDebts.toLocaleString())
+                    : directReportType === "reminders"
+                      ? t.chat.reportReminders
+                          .replace("{activeCount}", String(activeReminders.length))
+                          .replace("{doneCount}", String(doneReminders.length))
+                          .replace("{notifiedCount}", String(notifiedReminders.length))
+                      : t.chat.reportAll
+                          .replace("{sales}", totalSales.toLocaleString())
+                          .replace("{expenses}", totalExpenses.toLocaleString())
+                          .replace("{profit}", totalProfit.toLocaleString())
+                          .replace("{debts}", totalDebts.toLocaleString())
+                          .replace("{debtCount}", String(activeDebts.length))
+                          .replace("{activeReminders}", String(activeReminders.length))
+                          .replace("{notifiedReminders}", String(notifiedReminders.length)),
+          timestamp: new Date(),
+        }
+        setMessages(prev => limitMessages([...prev, assistantMessage]))
+        return
+      }
+
       const recentMessages = nextMessages
         .slice(-CONTEXT_MESSAGES_COUNT)
         .map((message) => ({ role: message.role, content: message.content }))
@@ -173,7 +239,48 @@ export function ChatInterface() {
           .replace('{amount}', response.debt.amount.toLocaleString())
       } else if (response.action === "queryFinancialData" && response.query) {
         const totalSales = state.sales.reduce((acc, s) => acc + s.amount, 0)
-        assistantResponse = t.chat.queryResult.replace('{amount}', totalSales.toLocaleString())
+        const totalExpenses = state.expenses.reduce((acc, s) => acc + s.amount, 0)
+        const totalProfit = totalSales - totalExpenses
+        const activeDebts = state.debts.filter((item) => item.status === "active" && item.direction === "owedToUser")
+        const totalDebts = activeDebts.reduce((acc, item) => acc + item.amount, 0)
+        const activeReminders = state.reminders.filter((item) => item.status === "active")
+        const doneReminders = state.reminders.filter((item) => item.status === "done")
+        const notifiedReminders = state.reminders.filter((item) => item.notified)
+
+        switch (response.query.dataType) {
+          case "sales":
+          case "earnings":
+            assistantResponse = t.chat.reportSales.replace("{amount}", totalSales.toLocaleString())
+            break
+          case "expenses":
+            assistantResponse = t.chat.reportExpenses.replace("{amount}", totalExpenses.toLocaleString())
+            break
+          case "profit":
+            assistantResponse = t.chat.reportProfit.replace("{amount}", totalProfit.toLocaleString())
+            break
+          case "debts":
+            assistantResponse = t.chat.reportDebts
+              .replace("{activeCount}", String(activeDebts.length))
+              .replace("{amount}", totalDebts.toLocaleString())
+            break
+          case "reminders":
+            assistantResponse = t.chat.reportReminders
+              .replace("{activeCount}", String(activeReminders.length))
+              .replace("{doneCount}", String(doneReminders.length))
+              .replace("{notifiedCount}", String(notifiedReminders.length))
+            break
+          case "all":
+          default:
+            assistantResponse = t.chat.reportAll
+              .replace("{sales}", totalSales.toLocaleString())
+              .replace("{expenses}", totalExpenses.toLocaleString())
+              .replace("{profit}", totalProfit.toLocaleString())
+              .replace("{debts}", totalDebts.toLocaleString())
+              .replace("{debtCount}", String(activeDebts.length))
+              .replace("{activeReminders}", String(activeReminders.length))
+              .replace("{notifiedReminders}", String(notifiedReminders.length))
+            break
+        }
       } else if (response.action === "recordReminder" && response.reminder) {
         const eventDate = parseEventDate(response.reminder.date, response.reminder.time)
 
@@ -215,20 +322,8 @@ export function ChatInterface() {
   }
 
   return (
-    <Card className="flex h-[calc(100vh-8rem)] flex-col overflow-hidden rounded-2xl border bg-white shadow-sm">
-      <div className="flex items-center justify-between border-b bg-white px-4 py-3">
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-sky-100 text-sky-600">
-            <Sparkles className="h-4 w-4" />
-          </div>
-          <div>
-            <h3 className="text-sm font-semibold text-zinc-900">SavdoBot AI</h3>
-            <p className="text-xs text-emerald-600">online</p>
-          </div>
-        </div>
-      </div>
-
-      <ScrollArea className="flex-1 bg-zinc-50 p-4" ref={scrollRef}>
+    <Card className="relative flex h-[calc(100vh-8rem)] flex-col overflow-hidden rounded-2xl border bg-zinc-50 shadow-sm">
+      <ScrollArea className="flex-1 p-4 pb-24" ref={scrollRef}>
         <div className="space-y-3">
           {messages.map((message) => (
             <div
@@ -268,13 +363,13 @@ export function ChatInterface() {
         </div>
       </ScrollArea>
 
-      <div className="border-t bg-white p-3">
+      <div className="absolute inset-x-0 bottom-0 border-t bg-white p-3">
         <form
           onSubmit={(e) => {
             e.preventDefault()
             handleSend()
           }}
-          className="flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-2 py-1"
+          className="flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-2 py-1 shadow-sm"
         >
           <Button type="button" variant="ghost" size="icon" className="rounded-full text-zinc-400 hover:text-sky-600">
             <Mic className="h-5 w-5" />
