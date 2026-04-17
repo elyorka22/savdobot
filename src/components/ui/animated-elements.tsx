@@ -181,7 +181,7 @@ interface AnimatedProgressProps {
   max?: number
   className?: string
   showValue?: boolean
-  color?: "primary" | "secondary" | "success" | "warning" | "destructive"
+  color?: "primary" | "secondary" | "accent" | "success" | "warning" | "destructive"
 }
 
 export function AnimatedProgress({ 
@@ -195,6 +195,7 @@ export function AnimatedProgress({
   const colorClasses = {
     primary: "bg-gradient-primary",
     secondary: "bg-gradient-secondary",
+    accent: "bg-gradient-accent",
     success: "bg-gradient-success",
     warning: "bg-gradient-warning",
     destructive: "bg-gradient-destructive"
