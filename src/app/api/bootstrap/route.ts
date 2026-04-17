@@ -1,8 +1,14 @@
-import { NextResponse } from "next/server"
+import { NextRequest } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { logger } from "@/lib/logger"
+import { createSuccessResponse, handleValidationError, withCors, withRateLimit } from "@/lib/api-utils"
 
-export async function GET() {
+async function handler(request: NextRequest) {
+  const startTime = Date.now()
+  
   try {
+    logger.database("query", "bootstrap", undefined, { operation: "load_all_data" })
+
     const [sales, expenses, clients, debts, reminders] = await Promise.all([
       prisma.sale.findMany({ orderBy: { date: "desc" } }),
       prisma.expense.findMany({ orderBy: { date: "desc" } }),
@@ -11,7 +17,18 @@ export async function GET() {
       prisma.reminder.findMany({ orderBy: { createdAt: "desc" } }),
     ])
 
-    return NextResponse.json({
+    const duration = Date.now() - startTime
+    logger.api("GET", "/api/bootstrap", 200, duration, { 
+      recordsCount: {
+        sales: sales.length,
+        expenses: expenses.length,
+        clients: clients.length,
+        debts: debts.length,
+        reminders: reminders.length,
+      }
+    })
+
+    return createSuccessResponse({
       sales: sales.map((item) => ({ ...item, date: item.date.toISOString() })),
       expenses: expenses.map((item) => ({ ...item, date: item.date.toISOString() })),
       clients,
@@ -29,15 +46,22 @@ export async function GET() {
         remindAt: item.remindAt.toISOString(),
         createdAt: item.createdAt.toISOString(),
       })),
-    })
+    }, "Bootstrap data loaded successfully")
   } catch (error) {
-    console.error("Failed to load bootstrap data, using fallback", error)
-    return NextResponse.json({
+    const duration = Date.now() - startTime
+    logger.error("Failed to load bootstrap data", { 
+      error: error instanceof Error ? error.message : String(error),
+      duration,
+    })
+    
+    return createSuccessResponse({
       sales: [],
       expenses: [],
       clients: [],
       debts: [],
       reminders: [],
-    })
+    }, "Fallback data loaded")
   }
 }
+
+export const GET = withCors(withRateLimit(handler))

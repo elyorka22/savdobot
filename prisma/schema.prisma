@@ -10,54 +10,85 @@ datasource db {
 model Sale {
   id          String   @id @default(cuid())
   amount      Int
-  description String
+  description String   @db.VarChar(255)
   date        DateTime @default(now())
+  
+  @@index([date])
+  @@index([amount])
+  @@index([date, amount])
 }
 
 model Expense {
   id          String   @id @default(cuid())
   amount      Int
-  description String
+  description String   @db.VarChar(255)
   date        DateTime @default(now())
+  
+  @@index([date])
+  @@index([amount])
+  @@index([date, amount])
 }
 
 model Client {
-  id        String @id @default(cuid())
-  name      String
-  phone     String?
-  totalDebt Int    @default(0)
+  id        String    @id @default(cuid())
+  name      String    @db.VarChar(100)
+  phone     String?   @db.VarChar(20)
+  totalDebt Int       @default(0)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   debts     Debt[]
+  
+  @@unique([phone])
+  @@index([name])
+  @@index([totalDebt])
 }
 
 model Debt {
   id          String   @id @default(cuid())
   clientId    String
-  clientName  String
+  clientName  String   @db.VarChar(100)
   amount      Int
-  direction   String
-  description String
+  direction   String   @db.VarChar(20)
+  description String?  @db.VarChar(255)
   dueDate     DateTime?
   date        DateTime @default(now())
-  status      String   @default("active")
+  status      String   @default("active") @db.VarChar(20)
 
   client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  
+  @@index([clientId])
+  @@index([status])
+  @@index([direction])
+  @@index([dueDate])
+  @@index([date])
+  @@index([amount])
+  @@index([status, direction])
 }
 
 model Reminder {
   id        String   @id @default(cuid())
-  text      String
+  text      String   @db.VarChar(500)
   eventAt   DateTime
   remindAt  DateTime
   notified  Boolean  @default(false)
-  status    String   @default("active")
+  status    String   @default("active") @db.VarChar(20)
   createdAt DateTime @default(now())
+  
+  @@index([status])
+  @@index([remindAt])
+  @@index([eventAt])
+  @@index([notified])
+  @@index([status, remindAt])
 }
 
 model WebPushSubscription {
   id        String   @id @default(cuid())
-  endpoint  String   @unique
-  p256dh    String
-  auth      String
+  endpoint  String   @unique @db.Text
+  p256dh    String   @db.Text
+  auth      String   @db.Text
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  
+  @@index([createdAt])
+  @@index([updatedAt])
 }
