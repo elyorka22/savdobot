@@ -89,7 +89,7 @@ export default function DebtsPage() {
                             size="sm" 
                             variant="ghost" 
                             className="text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700"
-                            onClick={() => markDebtAsPaid(debt.id)}
+                            onClick={() => void markDebtAsPaid(debt.id)}
                           >
                             <CheckCircle2 className="mr-2 h-4 w-4" />
                             Оплатить

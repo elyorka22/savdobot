@@ -6,6 +6,7 @@ export const translations = {
       debts: "Долги",
       clients: "Клиенты",
       analytics: "Аналитика",
+      memories: "Запоминания",
       settings: "Настройки",
       logout: "Выйти"
     },
@@ -28,6 +29,7 @@ export const translations = {
       saleRecorded: "Записал продажу на {amount} сум. 👍",
       expenseRecorded: "Записал расход: {desc} на {amount} сум.",
       debtAdded: "Добавил долг для {name}: {amount} сум. Теперь это в долговой книге.",
+      reminderAdded: "Запомнил. Напомню: '{text}' в {time}. Предупрежу за 5 минут.",
       queryResult: "Твои общие продажи составляют {amount} сум. Твои дела идут хорошо!",
       unknown: "Я не совсем понял команду. Попробуй перефразировать, например: 'Расход 10000 на бензин'."
     },
@@ -82,6 +84,19 @@ export const translations = {
       insightText: "Ваши продажи в пятницу и субботу выросли на 25% по сравнению с прошлым периодом. Наиболее популярная категория — Продукты. Рекомендуем пополнить запасы к следующему уикенду.",
       salesByDay: "Продажи по дням",
       categories: "Категории доходов"
+    },
+    reminders: {
+      title: "Запоминания",
+      subtitle: "Все напоминания, которые AI сохранил из чата.",
+      empty: "Пока нет напоминаний.",
+      eventTime: "Время события",
+      remindTime: "Напомнить в",
+      status: "Статус",
+      active: "Активно",
+      done: "Выполнено",
+      doneBtn: "Отметить выполненным",
+      notified: "Уведомление отправлено",
+      pending: "Ожидает уведомления"
     }
   },
   uz: {
@@ -91,6 +106,7 @@ export const translations = {
       debts: "Qarzlar",
       clients: "Mijozlar",
       analytics: "Analitika",
+      memories: "Eslatmalar",
       settings: "Sozlamalar",
       logout: "Chiqish"
     },
@@ -113,6 +129,7 @@ export const translations = {
       saleRecorded: "{amount} so'mlik sotuv yozildi. 👍",
       expenseRecorded: "Xarajat yozildi: {desc}, {amount} so'm.",
       debtAdded: "{name} uchun {amount} so'm qarz qo'shildi. Endi bu qarz daftarchasida.",
+      reminderAdded: "Eslab qoldim. '{text}' uchun {time} da eslataman. 5 daqiqa oldin ogohlantiraman.",
       queryResult: "Umumiy sotuvlaringiz {amount} so'mni tashkil qiladi. Ishlaringiz juda yaxshi!",
       unknown: "Buyruqni tushunmadim. Iltimos, boshqacha ayting, masalan: 'Benzin uchun 10000 xarajat'."
     },
@@ -167,6 +184,19 @@ export const translations = {
       insightText: "Juma va shanba kunlari sotuvlaringiz o'tgan davrga nisbatan 25% ga oshdi. Eng mashhur kategoriya — Oziq-ovqat. Keyingi dam olish kunlariga zaxiralarni to'ldirishni tavsiya qilamiz.",
       salesByDay: "Kunlik sotuvlar",
       categories: "Daromad kategoriyalari"
+    },
+    reminders: {
+      title: "Eslatmalar",
+      subtitle: "Chat orqali AI saqlagan barcha eslatmalar.",
+      empty: "Hozircha eslatmalar yo'q.",
+      eventTime: "Voqea vaqti",
+      remindTime: "Eslatish vaqti",
+      status: "Holat",
+      active: "Faol",
+      done: "Bajarildi",
+      doneBtn: "Bajarildi deb belgilash",
+      notified: "Bildirishnoma yuborilgan",
+      pending: "Bildirishnoma kutilmoqda"
     }
   }
 };

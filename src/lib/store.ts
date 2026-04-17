@@ -35,39 +35,33 @@ export interface Debt {
   status: "active" | "paid"
 }
 
+export interface Reminder {
+  id: string
+  text: string
+  eventAt: string
+  remindAt: string
+  notified: boolean
+  status: "active" | "done"
+  createdAt: string
+}
+
 export interface AppState {
   sales: Sale[]
   expenses: Expense[]
   clients: Client[]
   debts: Debt[]
+  reminders: Reminder[]
   language: "ru" | "uz" | "en"
 }
 
-const STORAGE_KEY = "savdobot_v1_storage"
+const LANGUAGE_STORAGE_KEY = "savdobot_language_v1"
 
 const initialData: AppState = {
-  sales: [
-    { id: "1", amount: 150000, description: "Продукты питания", date: new Date().toISOString() },
-    { id: "2", amount: 75000, description: "Напитки", date: new Date(Date.now() - 86400000).toISOString() }
-  ],
-  expenses: [
-    { id: "1", amount: 45000, description: "Аренда", date: new Date().toISOString() }
-  ],
-  clients: [
-    { id: "1", name: "Азиз", totalDebt: 100000 }
-  ],
-  debts: [
-    { 
-      id: "1", 
-      clientId: "1", 
-      clientName: "Азиз", 
-      amount: 100000, 
-      direction: "owedToUser", 
-      description: "Остаток за прошлый месяц", 
-      date: new Date().toISOString(),
-      status: "active"
-    }
-  ],
+  sales: [],
+  expenses: [],
+  clients: [],
+  debts: [],
+  reminders: [],
   language: "ru"
 }
 
@@ -76,101 +70,123 @@ export function useAppStore() {
   const [hydrated, setHydrated] = useState(false)
 
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY)
-    if (stored) {
+    const loadData = async () => {
       try {
-        setState(JSON.parse(stored))
+        const languageFromStorage = localStorage.getItem(LANGUAGE_STORAGE_KEY) as AppState["language"] | null
+        const response = await fetch("/api/bootstrap", { cache: "no-store" })
+        if (!response.ok) {
+          throw new Error("Failed to load bootstrap data")
+        }
+
+        const payload = await response.json()
+        setState({
+          sales: payload.sales ?? [],
+          expenses: payload.expenses ?? [],
+          clients: payload.clients ?? [],
+          debts: payload.debts ?? [],
+          reminders: payload.reminders ?? [],
+          language: languageFromStorage ?? "ru",
+        })
       } catch (e) {
-        console.error("Failed to parse storage", e)
+        console.error("Failed to load app data", e)
+        setState((prev) => ({ ...prev, language: prev.language || "ru" }))
+      } finally {
+        setHydrated(true)
       }
     }
-    setHydrated(true)
+
+    loadData()
   }, [])
 
-  useEffect(() => {
-    if (hydrated) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
-    }
-  }, [state, hydrated])
-
-  const addSale = (sale: Omit<Sale, "id" | "date">) => {
-    const newSale: Sale = {
-      ...sale,
-      id: Math.random().toString(36).substr(2, 9),
-      date: new Date().toISOString()
-    }
-    setState(prev => ({ ...prev, sales: [newSale, ...prev.sales] }))
+  const addSale = async (sale: Omit<Sale, "id" | "date">) => {
+    const response = await fetch("/api/sales", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(sale),
+    })
+    if (!response.ok) return
+    const createdSale = (await response.json()) as Sale
+    setState(prev => ({ ...prev, sales: [createdSale, ...prev.sales] }))
   }
 
-  const addExpense = (expense: Omit<Expense, "id" | "date">) => {
-    const newExpense: Expense = {
-      ...expense,
-      id: Math.random().toString(36).substr(2, 9),
-      date: new Date().toISOString()
-    }
-    setState(prev => ({ ...prev, expenses: [newExpense, ...prev.expenses] }))
+  const addExpense = async (expense: Omit<Expense, "id" | "date">) => {
+    const response = await fetch("/api/expenses", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(expense),
+    })
+    if (!response.ok) return
+    const createdExpense = (await response.json()) as Expense
+    setState(prev => ({ ...prev, expenses: [createdExpense, ...prev.expenses] }))
   }
 
-  const addDebt = (debt: Omit<Debt, "id" | "date" | "status">) => {
-    const id = Math.random().toString(36).substr(2, 9)
-    const newDebt: Debt = {
-      ...debt,
-      id,
-      date: new Date().toISOString(),
-      status: "active"
-    }
-    
+  const addDebt = async (debt: Omit<Debt, "id" | "date" | "status">) => {
+    const response = await fetch("/api/debts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(debt),
+    })
+    if (!response.ok) return
+
+    const payload = await response.json() as { debt: Debt; client: Client }
     setState(prev => {
-      // Find or create client
-      let clients = [...prev.clients]
-      const clientIndex = clients.findIndex(c => c.name.toLowerCase() === debt.clientName.toLowerCase())
-      
-      if (clientIndex === -1) {
-        clients.push({
-          id: Math.random().toString(36).substr(2, 9),
-          name: debt.clientName,
-          totalDebt: debt.direction === "owedToUser" ? debt.amount : -debt.amount
-        })
-      } else {
-        const adjustment = debt.direction === "owedToUser" ? debt.amount : -debt.amount
-        clients[clientIndex] = {
-          ...clients[clientIndex],
-          totalDebt: clients[clientIndex].totalDebt + adjustment
-        }
-      }
+      const nextClients = prev.clients.some((item) => item.id === payload.client.id)
+        ? prev.clients.map((item) => (item.id === payload.client.id ? payload.client : item))
+        : [payload.client, ...prev.clients]
 
       return {
         ...prev,
-        clients,
-        debts: [newDebt, ...prev.debts]
+        clients: nextClients,
+        debts: [payload.debt, ...prev.debts],
       }
     })
   }
 
-  const markDebtAsPaid = (debtId: string) => {
-    setState(prev => {
-      const debt = prev.debts.find(d => d.id === debtId)
-      if (!debt || debt.status === "paid") return prev
+  const markDebtAsPaid = async (debtId: string) => {
+    const response = await fetch(`/api/debts/${debtId}/pay`, { method: "PATCH" })
+    if (!response.ok) return
 
-      const adjustment = debt.direction === "owedToUser" ? -debt.amount : debt.amount
-      
-      const updatedClients = prev.clients.map(c => 
-        c.name === debt.clientName ? { ...c, totalDebt: c.totalDebt + adjustment } : c
-      )
+    const payload = await response.json() as { debt: Debt; client: Client }
+    setState(prev => ({
+      ...prev,
+      clients: prev.clients.map((item) => (item.id === payload.client.id ? payload.client : item)),
+      debts: prev.debts.map((item) => (item.id === payload.debt.id ? payload.debt : item)),
+    }))
+  }
 
-      const updatedDebts = prev.debts.map(d => 
-        d.id === debtId ? { ...d, status: "paid" as const } : d
-      )
-
-      return {
-        ...prev,
-        clients: updatedClients,
-        debts: updatedDebts
-      }
+  const addReminder = async (reminder: Omit<Reminder, "id" | "createdAt" | "notified" | "status">) => {
+    const response = await fetch("/api/reminders", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(reminder),
     })
+    if (!response.ok) return
+    const createdReminder = (await response.json()) as Reminder
+    setState(prev => ({ ...prev, reminders: [createdReminder, ...prev.reminders] }))
+  }
+
+  const markReminderNotified = async (reminderId: string) => {
+    const response = await fetch(`/api/reminders/${reminderId}/notified`, { method: "PATCH" })
+    if (!response.ok) return
+    const updatedReminder = (await response.json()) as Reminder
+    setState(prev => ({
+      ...prev,
+      reminders: prev.reminders.map((item) => (item.id === updatedReminder.id ? updatedReminder : item)),
+    }))
+  }
+
+  const markReminderDone = async (reminderId: string) => {
+    const response = await fetch(`/api/reminders/${reminderId}/done`, { method: "PATCH" })
+    if (!response.ok) return
+    const updatedReminder = (await response.json()) as Reminder
+    setState(prev => ({
+      ...prev,
+      reminders: prev.reminders.map((item) => (item.id === updatedReminder.id ? updatedReminder : item)),
+    }))
   }
 
   const setLanguage = (language: AppState["language"]) => {
+    localStorage.setItem(LANGUAGE_STORAGE_KEY, language)
     setState(prev => ({ ...prev, language }))
   }
 
@@ -180,6 +196,9 @@ export function useAppStore() {
     addExpense,
     addDebt,
     markDebtAsPaid,
+    addReminder,
+    markReminderNotified,
+    markReminderDone,
     setLanguage,
     hydrated
   }

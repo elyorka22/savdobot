@@ -14,7 +14,8 @@ import {
   LogOut,
   Sun,
   Moon,
-  Languages
+  Languages,
+  Bell
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { 
@@ -37,10 +38,11 @@ import {
 import { cn } from "@/lib/utils"
 import { useAppStore } from "@/lib/store"
 import { translations } from "@/lib/translations"
+import { toast } from "@/hooks/use-toast"
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
-  const { state, setLanguage } = useAppStore()
+  const { state, setLanguage, markReminderNotified } = useAppStore()
   const t = translations[state.language as keyof typeof translations] || translations.ru
 
   const navigationItems = [
@@ -49,7 +51,39 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     { name: t.nav.debts, href: "/debts", icon: CreditCard },
     { name: t.nav.clients, href: "/clients", icon: Users },
     { name: t.nav.analytics, href: "/reports", icon: TrendingUp },
+    { name: t.nav.memories, href: "/memories", icon: Bell },
   ]
+
+  React.useEffect(() => {
+    if (typeof window === "undefined") return
+
+    if ("Notification" in window && Notification.permission === "default") {
+      Notification.requestPermission().catch(() => {})
+    }
+
+    const interval = window.setInterval(() => {
+      const now = Date.now()
+      const dueReminders = (state.reminders || []).filter((item) => {
+        if (item.status !== "active" || item.notified) return false
+        return new Date(item.remindAt).getTime() <= now
+      })
+
+      dueReminders.forEach((item) => {
+        toast({
+          title: "Напоминание",
+          description: item.text,
+        })
+
+        if ("Notification" in window && Notification.permission === "granted") {
+          new Notification("Напоминание SavdoBot", { body: item.text })
+        }
+
+        void markReminderNotified(item.id)
+      })
+    }, 30000)
+
+    return () => window.clearInterval(interval)
+  }, [state.reminders, markReminderNotified])
 
   return (
     <SidebarProvider>

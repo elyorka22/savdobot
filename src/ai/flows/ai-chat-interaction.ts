@@ -14,6 +14,12 @@ import {z} from 'genkit';
 
 const AiChatInteractionInputSchema = z.object({
   message: z.string().describe('The user\'s chat message in Russian or Uzbek, containing a command or query.'),
+  recentMessages: z.array(
+    z.object({
+      role: z.enum(['assistant', 'user']),
+      content: z.string(),
+    })
+  ).max(6).optional().describe('Up to 6 recent chat messages for context.'),
 });
 export type AiChatInteractionInput = z.infer<typeof AiChatInteractionInputSchema>;
 
@@ -23,6 +29,7 @@ const AiChatInteractionOutputSchema = z.object({
     'recordExpense',
     'recordDebt',
     'queryFinancialData',
+    'recordReminder',
     'unknown'
   ]).describe('The type of action to perform based on the user\'s message. Use "unknown" if the intent is unclear.'),
 
@@ -54,6 +61,13 @@ const AiChatInteractionOutputSchema = z.object({
     endDate: z.string().optional().describe('End date for a custom query period in YYYY-MM-DD format (e.g., 2023-01-31). Required if period is "custom".'),
   }).optional().describe('Details for querying financial data.'),
 
+  // Details for storing a reminder. Present only if action is "recordReminder".
+  reminder: z.object({
+    text: z.string().describe('Reminder text in user language.'),
+    time: z.string().describe('Reminder event time in HH:mm format.'),
+    date: z.string().optional().describe('Optional reminder event date in YYYY-MM-DD. Use current date if not provided by user.'),
+  }).optional().describe('Details for creating a reminder.'),
+
   // If the action is "unknown" or more information is needed, provide a clarifying message to the user.
   clarification: z.string().optional().describe('A clarifying message to the user in Russian or Uzbek, if the intent is unclear or more information is needed. For example: "Пожалуйста, уточните, что вы хотите сделать."'),
 });
@@ -73,14 +87,24 @@ The user's message will be related to managing financial transactions, debts, or
 
 Here are the rules you must follow:
 1.  **Language Comprehension**: Understand commands in both Russian and Uzbek.
-2.  **Action Identification**: Determine the primary 'action' based on the user's message. Possible actions are 'recordSale', 'recordExpense', 'recordDebt', 'queryFinancialData', or 'unknown' if the intent is unclear.
+2.  **Action Identification**: Determine the primary 'action' based on the user's message. Possible actions are 'recordSale', 'recordExpense', 'recordDebt', 'queryFinancialData', 'recordReminder', or 'unknown' if the intent is unclear.
 3.  **Data Extraction**: For the identified action, extract all relevant details and populate the corresponding nested object (e.g., 'sale', 'expense', 'debt', 'query') in the JSON output. All amounts are in Uzbek Sum (UZS).
 4.  **Debt Direction**: If the user says something like "У меня есть долг у клиента Азиз 100 000 сум" or "Клиент Азиз должен 100 000 сум", set 'debt.direction' to 'owedToUser'. If the user says "Я должен клиенту Азиз 100 000 сум", set 'debt.direction' to 'owedByUser'.
 5.  **Query Period**: For queries, correctly identify the 'period' (e.g., 'today', 'this_week', 'this_month'). If a specific date range is provided (e.g., "с 1 января по 5 февраля"), set 'period' to 'custom' and extract 'startDate' and 'endDate' in YYYY-MM-DD format.
 6.  **Unknown Intent**: If the user's command is ambiguous, incomplete, or cannot be mapped to any defined action, set the 'action' to 'unknown' and provide a 'clarification' message in Russian or Uzbek asking the user to provide more details.
-7.  **JSON Format**: Your response MUST be a JSON object that strictly adheres to the provided schema.
+7.  **Reminders**: If user asks to remember/remind something at a specific time (e.g., "напомни встречу в 16:00"), set action to 'recordReminder', fill 'reminder.text', and parse time in HH:mm. Add 'date' only if explicitly provided.
+8.  **JSON Format**: Your response MUST be a JSON object that strictly adheres to the provided schema.
 
 User Message: {{{message}}}
+
+Recent Context (oldest to newest, may be empty):
+{{#if recentMessages}}
+{{#each recentMessages}}
+- {{role}}: {{{content}}}
+{{/each}}
+{{else}}
+- No previous context.
+{{/if}}
 
 Strictly follow the output schema provided.`,
 });

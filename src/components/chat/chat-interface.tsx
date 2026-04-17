@@ -18,8 +18,40 @@ interface Message {
   timestamp: Date
 }
 
+interface StoredMessage {
+  id: string
+  role: "assistant" | "user"
+  content: string
+  timestamp: string
+}
+
+const CHAT_STORAGE_KEY = "savdobot_chat_messages_v1"
+const MAX_STORED_MESSAGES = 50
+const CONTEXT_MESSAGES_COUNT = 6
+
+const limitMessages = (items: Message[]) => items.slice(-MAX_STORED_MESSAGES)
+
+const parseEventDate = (date?: string, time?: string) => {
+  const now = new Date()
+  const baseDate = date ? new Date(`${date}T00:00:00`) : new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const [hours, minutes] = (time || "09:00").split(":").map((value) => Number(value))
+
+  if (Number.isNaN(hours) || Number.isNaN(minutes)) {
+    return null
+  }
+
+  baseDate.setHours(hours, minutes, 0, 0)
+
+  // If user provided only time and it's already passed today, schedule for tomorrow.
+  if (!date && baseDate.getTime() < now.getTime()) {
+    baseDate.setDate(baseDate.getDate() + 1)
+  }
+
+  return baseDate
+}
+
 export function ChatInterface() {
-  const { addSale, addExpense, addDebt, state } = useAppStore()
+  const { addSale, addExpense, addDebt, addReminder, state } = useAppStore()
   const t = translations[state.language as keyof typeof translations] || translations.ru
   
   const [input, setInput] = useState("")
@@ -33,6 +65,32 @@ export function ChatInterface() {
     }
   ])
   const scrollRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const stored = localStorage.getItem(CHAT_STORAGE_KEY)
+    if (!stored) return
+
+    try {
+      const parsed = JSON.parse(stored) as StoredMessage[]
+      if (!Array.isArray(parsed) || parsed.length === 0) return
+
+      const hydratedMessages: Message[] = parsed.map((item) => ({
+        ...item,
+        timestamp: new Date(item.timestamp),
+      }))
+      setMessages(limitMessages(hydratedMessages))
+    } catch (error) {
+      console.error("Failed to parse chat storage", error)
+    }
+  }, [])
+
+  useEffect(() => {
+    const serializable: StoredMessage[] = limitMessages(messages).map((message) => ({
+      ...message,
+      timestamp: message.timestamp.toISOString(),
+    }))
+    localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(serializable))
+  }, [messages])
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -50,25 +108,30 @@ export function ChatInterface() {
       timestamp: new Date()
     }
 
-    setMessages(prev => [...prev, userMessage])
+    const nextMessages = limitMessages([...messages, userMessage])
+    setMessages(nextMessages)
     setInput("")
     setIsLoading(true)
 
     try {
-      const response = await aiChatInteraction({ message: input })
+      const recentMessages = nextMessages
+        .slice(-CONTEXT_MESSAGES_COUNT)
+        .map((message) => ({ role: message.role, content: message.content }))
+
+      const response = await aiChatInteraction({ message: input, recentMessages })
       
       let assistantResponse = ""
 
       if (response.action === "recordSale" && response.sale) {
-        addSale({ amount: response.sale.amount, description: response.sale.description || "AI" })
+        await addSale({ amount: response.sale.amount, description: response.sale.description || "AI" })
         assistantResponse = t.chat.saleRecorded.replace('{amount}', response.sale.amount.toLocaleString())
       } else if (response.action === "recordExpense" && response.expense) {
-        addExpense({ amount: response.expense.amount, description: response.expense.description })
+        await addExpense({ amount: response.expense.amount, description: response.expense.description })
         assistantResponse = t.chat.expenseRecorded
           .replace('{desc}', response.expense.description)
           .replace('{amount}', response.expense.amount.toLocaleString())
       } else if (response.action === "recordDebt" && response.debt) {
-        addDebt({ 
+        await addDebt({ 
           clientName: response.debt.clientName, 
           amount: response.debt.amount, 
           direction: response.debt.direction as "owedToUser" | "owedByUser",
@@ -81,6 +144,22 @@ export function ChatInterface() {
       } else if (response.action === "queryFinancialData" && response.query) {
         const totalSales = state.sales.reduce((acc, s) => acc + s.amount, 0)
         assistantResponse = t.chat.queryResult.replace('{amount}', totalSales.toLocaleString())
+      } else if (response.action === "recordReminder" && response.reminder) {
+        const eventDate = parseEventDate(response.reminder.date, response.reminder.time)
+
+        if (!eventDate) {
+          assistantResponse = t.chat.unknown
+        } else {
+          const remindDate = new Date(eventDate.getTime() - 5 * 60 * 1000)
+          await addReminder({
+            text: response.reminder.text,
+            eventAt: eventDate.toISOString(),
+            remindAt: remindDate.toISOString(),
+          })
+          assistantResponse = t.chat.reminderAdded
+            .replace('{text}', response.reminder.text)
+            .replace('{time}', eventDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }))
+        }
       } else {
         assistantResponse = response.clarification || t.chat.unknown
       }
@@ -91,15 +170,15 @@ export function ChatInterface() {
         content: assistantResponse,
         timestamp: new Date()
       }
-      setMessages(prev => [...prev, assistantMessage])
+      setMessages(prev => limitMessages([...prev, assistantMessage]))
     } catch (error) {
       console.error(error)
-      setMessages(prev => [...prev, {
+      setMessages(prev => limitMessages([...prev, {
         id: Date.now().toString(),
         role: "assistant",
         content: t.chat.error,
         timestamp: new Date()
-      }])
+      }]))
     } finally {
       setIsLoading(false)
     }
