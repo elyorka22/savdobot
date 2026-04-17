@@ -4,55 +4,100 @@
 
 @layer base {
   :root {
-    --background: 204 20% 94%; /* #ECF0F3 */
-    --foreground: 222 47% 11%;
+    /* Modern bright color palette */
+    --background: 228 100% 98%; /* Very light blue background */
+    --foreground: 240 10% 15%; /* Dark text */
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 240 10% 15%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
-    --primary: 206 74% 51%; /* #268FDF */
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222 47% 11%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215 16% 47%;
-    --accent: 247 68% 60%; /* #6354DB */
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 206 74% 51%;
+    --popover-foreground: 240 10% 15%;
+    
+    /* Vibrant primary gradient colors */
+    --primary: 221 83% 53%; /* Bright blue */
+    --primary-foreground: 0 0% 100%;
+    
+    /* Modern secondary */
+    --secondary: 274 91% 67%; /* Bright purple */
+    --secondary-foreground: 0 0% 100%;
+    
+    /* Muted colors */
+    --muted: 228 25% 95%;
+    --muted-foreground: 240 8% 46%;
+    
+    /* Bright accent */
+    --accent: 340 82% 52%; /* Bright pink */
+    --accent-foreground: 0 0% 100%;
+    
+    /* Modern destructive */
+    --destructive: 0 72% 51%; /* Bright red */
+    --destructive-foreground: 0 0% 100%;
+    
+    /* Border and input */
+    --border: 228 20% 90%;
+    --input: 228 20% 90%;
+    --ring: 221 83% 53%;
     --radius: 0.75rem;
+    
+    /* Sidebar colors */
     --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 206 74% 51%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-primary: 221 83% 53%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 228 25% 95%;
     --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-border: 228 20% 90%;
+    --sidebar-ring: 221 83% 53%;
+    
+    /* Additional bright colors for charts and UI elements */
+    --chart-1: 221 83% 53%; /* Blue */
+    --chart-2: 274 91% 67%; /* Purple */
+    --chart-3: 340 82% 52%; /* Pink */
+    --chart-4: 142 71% 45%; /* Green */
+    --chart-5: 38 92% 50%; /* Orange */
   }
   .dark {
-    --background: 222 47% 11%;
-    --foreground: 210 40% 98%;
-    --card: 222 47% 11%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222 47% 11%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 206 74% 51%;
-    --primary-foreground: 222 47% 11%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 247 68% 60%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 48%;
+    /* Dark mode with vibrant colors */
+    --background: 240 10% 8%;
+    --foreground: 0 0% 95%;
+    --card: 240 10% 12%;
+    --card-foreground: 0 0% 95%;
+    --popover: 240 10% 12%;
+    --popover-foreground: 0 0% 95%;
+    
+    /* Vibrant primary in dark */
+    --primary: 221 83% 63%;
+    --primary-foreground: 240 10% 8%;
+    
+    /* Bright secondary in dark */
+    --secondary: 274 91% 77%;
+    --secondary-foreground: 240 10% 8%;
+    
+    /* Muted colors for dark */
+    --muted: 240 10% 18%;
+    --muted-foreground: 240 5% 64%;
+    
+    /* Bright accent in dark */
+    --accent: 340 82% 62%;
+    --accent-foreground: 240 10% 8%;
+    
+    /* Destructive in dark */
+    --destructive: 0 72% 61%;
+    --destructive-foreground: 240 10% 8%;
+    
+    /* Dark borders */
+    --border: 240 10% 18%;
+    --input: 240 10% 18%;
+    --ring: 221 83% 63%;
+    
+    /* Sidebar in dark */
+    --sidebar-background: 240 10% 12%;
+    --sidebar-foreground: 0 0% 85%;
+    --sidebar-primary: 221 83% 63%;
+    --sidebar-primary-foreground: 240 10% 8%;
+    --sidebar-accent: 240 10% 18%;
+    --sidebar-accent-foreground: 0 0% 85%;
+    --sidebar-border: 240 10% 18%;
+    --sidebar-ring: 221 83% 63%;
   }
 }
 
@@ -62,5 +107,92 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  /* Gradient utilities for modern look */
+  .gradient-primary {
+    background: linear-gradient(135deg, hsl(221 83% 53%) 0%, hsl(274 91% 67%) 100%);
+  }
+  
+  .gradient-secondary {
+    background: linear-gradient(135deg, hsl(274 91% 67%) 0%, hsl(340 82% 52%) 100%);
+  }
+  
+  .gradient-accent {
+    background: linear-gradient(135deg, hsl(340 82% 52%) 0%, hsl(38 92% 50%) 100%);
+  }
+  
+  .gradient-success {
+    background: linear-gradient(135deg, hsl(142 71% 45%) 0%, hsl(142 71% 55%) 100%);
+  }
+  
+  .gradient-destructive {
+    background: linear-gradient(135deg, hsl(0 72% 51%) 0%, hsl(0 72% 61%) 100%);
+  }
+  
+  /* Text gradients */
+  .text-gradient-primary {
+    background: linear-gradient(135deg, hsl(221 83% 53%) 0%, hsl(274 91% 67%) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  /* Shadow utilities */
+  .shadow-glow-primary {
+    box-shadow: 0 0 20px hsl(221 83% 53% / 0.3);
+  }
+  
+  .shadow-glow-secondary {
+    box-shadow: 0 0 20px hsl(274 91% 67% / 0.3);
+  }
+  
+  .shadow-glow-accent {
+    box-shadow: 0 0 20px hsl(340 82% 52% / 0.3);
+  }
+  
+  /* Animated gradient background */
+  .gradient-animated {
+    background: linear-gradient(-45deg, hsl(221 83% 53%), hsl(274 91% 67%), hsl(340 82% 52%), hsl(38 92% 50%));
+    background-size: 400% 400%;
+    animation: gradientShift 15s ease infinite;
+  }
+  
+  @keyframes gradientShift {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+  
+  /* Glass morphism effect */
+  .glass {
+    background: hsl(228 100% 98% / 0.8);
+    backdrop-filter: blur(10px);
+    border: 1px solid hsl(228 20% 90% / 0.5);
+  }
+  
+  .glass-dark {
+    background: hsl(240 10% 12% / 0.8);
+    backdrop-filter: blur(10px);
+    border: 1px solid hsl(240 10% 18% / 0.5);
+  }
+  
+  /* Bright hover effects */
+  .hover-bright:hover {
+    filter: brightness(1.1);
+    transition: filter 0.3s ease;
+  }
+  
+  .hover-glow:hover {
+    box-shadow: 0 0 30px hsl(221 83% 53% / 0.5);
+    transition: box-shadow 0.3s ease;
   }
 }

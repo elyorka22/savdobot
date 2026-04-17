@@ -322,26 +322,26 @@ export function ChatInterface() {
   }
 
   return (
-    <Card className="relative flex h-[calc(100vh-8rem)] flex-col overflow-hidden rounded-2xl border bg-zinc-50 shadow-sm">
+    <Card className="relative flex h-[calc(100vh-8rem)] flex-col overflow-hidden rounded-2xl border bg-background/50 backdrop-blur-sm glass shadow-glow-primary">
       <ScrollArea className="flex-1 p-4 pb-24" ref={scrollRef}>
         <div className="space-y-3">
           {messages.map((message) => (
             <div
               key={message.id}
               className={cn(
-                "flex w-full items-end",
+                "flex w-full items-end animate-fade-in",
                 message.role === "user" ? "flex-row-reverse" : "flex-row"
               )}
             >
               <div className={cn(
-                "max-w-[82%] rounded-2xl px-3 py-2 text-sm shadow-sm",
+                "max-w-[82%] rounded-2xl px-3 py-2 text-sm shadow-sm transition-all hover-bright",
                 message.role === "assistant" 
-                  ? "rounded-bl-md border border-zinc-200 bg-white text-zinc-900" 
-                  : "rounded-br-md bg-emerald-100 text-zinc-900"
+                  ? "rounded-bl-md border border-primary/20 bg-gradient-primary text-white shadow-glow-primary" 
+                  : "rounded-br-md bg-gradient-accent text-white shadow-glow-accent"
               )}>
                 {message.content}
                 <div className={cn(
-                  "mt-1 text-[10px] text-zinc-500",
+                  "mt-1 text-[10px] opacity-70",
                   message.role === "user" ? "text-right" : "text-left"
                 )}>
                   {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -350,40 +350,40 @@ export function ChatInterface() {
             </div>
           ))}
           {isLoading && (
-            <div className="flex items-end">
-              <div className="mr-2 flex h-7 w-7 items-center justify-center rounded-full border border-zinc-200 bg-white text-sky-600">
-                <Bot className="h-4 w-4" />
+            <div className="flex items-end animate-fade-in">
+              <div className="mr-2 flex h-7 w-7 items-center justify-center rounded-full border border-primary/20 bg-gradient-primary shadow-glow-primary">
+                <Bot className="h-4 w-4 text-white" />
               </div>
-              <div className="flex items-center gap-2 rounded-2xl rounded-bl-md border border-zinc-200 bg-white px-3 py-2 text-sm shadow-sm">
-                <Loader2 className="h-4 w-4 animate-spin text-sky-600" />
-                <span className="text-zinc-500 italic">{t.chat.thinking}</span>
+              <div className="flex items-center gap-2 rounded-2xl rounded-bl-md border border-primary/20 bg-gradient-primary px-3 py-2 text-sm shadow-glow-primary">
+                <Loader2 className="h-4 w-4 animate-spin text-white" />
+                <span className="text-white/80 italic">{t.chat.thinking}</span>
               </div>
             </div>
           )}
         </div>
       </ScrollArea>
 
-      <div className="absolute inset-x-0 bottom-0 border-t bg-white p-3">
+      <div className="absolute inset-x-0 bottom-0 border-t bg-background/80 backdrop-blur-md glass p-3">
         <form
           onSubmit={(e) => {
             e.preventDefault()
             handleSend()
           }}
-          className="flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-2 py-1 shadow-sm"
+          className="flex items-center gap-2 rounded-full border border-primary/20 bg-background/50 backdrop-blur-sm px-2 py-1 shadow-sm hover-glow"
         >
-          <Button type="button" variant="ghost" size="icon" className="rounded-full text-zinc-400 hover:text-sky-600">
+          <Button type="button" variant="ghost" size="icon" className="rounded-full text-muted-foreground hover:text-accent hover-bright">
             <Mic className="h-5 w-5" />
           </Button>
           <Input
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder={t.chat.placeholder}
-            className="h-10 border-0 bg-transparent px-2 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
+            className="h-10 border-0 bg-transparent px-2 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 text-foreground placeholder:text-muted-foreground"
           />
           <Button 
             type="submit" 
             disabled={!input.trim() || isLoading} 
-            className="h-10 w-10 rounded-full bg-sky-500 p-0 hover:bg-sky-600"
+            className="h-10 w-10 rounded-full bg-gradient-primary p-0 text-white shadow-glow-primary hover-bright hover:shadow-glow-accent"
           >
             <Send className="h-5 w-5" />
           </Button>

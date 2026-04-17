@@ -134,18 +134,24 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full bg-background font-body">
+        {/* Mobile overlay */}
+        <div className="fixed inset-0 z-50 md:hidden">
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" />
+        </div>
+        
         <Sidebar variant="sidebar" collapsible="icon">
-          <SidebarHeader className="border-b px-6 py-4">
+          <SidebarHeader className="border-b px-4 py-3 md:px-6 md:py-4 bg-gradient-primary">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary shadow-lg shadow-primary/20">
-                <LayoutDashboard className="h-6 w-6 text-primary-foreground" />
+              <div className="flex h-8 w-8 md:h-10 md:w-10 items-center justify-center rounded-xl bg-white/20 backdrop-blur-sm border border-white/30 shadow-glow-primary">
+                <LayoutDashboard className="h-4 w-4 md:h-6 md:w-6 text-white" />
               </div>
-              <span className="text-xl font-bold tracking-tight text-foreground group-data-[collapsible=icon]:hidden">
-                Savdo<span className="text-primary">Bot</span>
+              <span className="text-lg md:text-xl font-bold tracking-tight text-white group-data-[collapsible=icon]:hidden">
+                Savdo<span className="text-white/80">Bot</span>
               </span>
             </div>
           </SidebarHeader>
-          <SidebarContent className="px-2 py-4">
+          
+          <SidebarContent className="px-1 py-2 md:px-2 md:py-4">
             <SidebarMenu>
               {navigationItems.map((item) => {
                 const isActive = pathname === item.href
@@ -156,13 +162,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                       isActive={isActive}
                       tooltip={item.name}
                       className={cn(
-                        "h-11 px-4 transition-all hover:bg-primary/5",
-                        isActive && "bg-primary/10 text-primary font-semibold hover:bg-primary/15"
+                        "h-10 md:h-11 px-3 md:px-4 transition-all hover-bright",
+                        isActive 
+                          ? "bg-gradient-primary text-white font-semibold shadow-glow-primary" 
+                          : "hover:bg-gradient-secondary/10 text-muted-foreground hover:text-foreground"
                       )}
                     >
                       <Link href={item.href}>
-                        <item.icon className={cn("h-5 w-5", isActive ? "text-primary" : "text-muted-foreground")} />
-                        <span className="text-[15px]">{item.name}</span>
+                        <item.icon className={cn("h-4 w-4 md:h-5 md:w-5", isActive ? "text-white" : "text-muted-foreground")} />
+                        <span className="text-[13px] md:text-[15px]">{item.name}</span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -170,18 +178,19 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               })}
             </SidebarMenu>
           </SidebarContent>
-          <SidebarFooter className="border-t p-4">
+          
+          <SidebarFooter className="border-t p-3 md:p-4">
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton className="h-11 px-4 text-muted-foreground hover:text-foreground">
-                  <Settings className="h-5 w-5" />
-                  <span className="text-[15px]">{t.nav.settings}</span>
+                <SidebarMenuButton className="h-10 md:h-11 px-3 md:px-4 text-muted-foreground hover:text-foreground">
+                  <Settings className="h-4 w-4 md:h-5 md:w-5" />
+                  <span className="text-[13px] md:text-[15px]">{t.nav.settings}</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton className="h-11 px-4 text-destructive hover:bg-destructive/5">
-                  <LogOut className="h-5 w-5" />
-                  <span className="text-[15px]">{t.nav.logout}</span>
+                <SidebarMenuButton className="h-10 md:h-11 px-3 md:px-4 text-destructive hover:bg-destructive/5">
+                  <LogOut className="h-4 w-4 md:h-5 md:w-5" />
+                  <span className="text-[13px] md:text-[15px]">{t.nav.logout}</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
@@ -189,42 +198,52 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </Sidebar>
 
         <main className="flex flex-1 flex-col overflow-hidden">
-          <header className="flex h-16 items-center justify-between border-b bg-white/80 px-6 backdrop-blur-md dark:bg-zinc-950/80">
-            <div className="flex items-center gap-4">
-              <SidebarTrigger className="md:hidden" />
-              <h1 className="text-lg font-semibold text-foreground">
+          {/* Mobile-friendly header */}
+          <header className="flex h-14 md:h-16 items-center justify-between border-b bg-background/80 px-3 md:px-6 backdrop-blur-md glass">
+            <div className="flex items-center gap-2 md:gap-4 flex-1 min-w-0">
+              <SidebarTrigger className="hover-bright h-8 w-8" />
+              <h1 className="text-sm md:text-lg font-semibold text-gradient-primary truncate">
                 {navigationItems.find(i => i.href === pathname)?.name || "Dashboard"}
               </h1>
             </div>
-            <div className="flex items-center gap-2">
+            
+            <div className="flex items-center gap-1 md:gap-2">
+              {/* Mobile-optimized language switcher */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="rounded-full">
-                    <Languages className="h-5 w-5" />
+                  <Button variant="ghost" size="icon" className="h-8 w-8 md:h-10 md:w-10 rounded-full hover-bright hover-glow">
+                    <Languages className="h-4 w-4 md:h-5 md:w-5" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => setLanguage('ru')}>
-                    Русский
+                <DropdownMenuContent align="end" className="glass">
+                  <DropdownMenuItem onClick={() => setLanguage('ru')} className="hover-bright text-sm">
+                    Français
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setLanguage('uz')}>
+                  <DropdownMenuItem onClick={() => setLanguage('uz')} className="hover-bright text-sm">
                     O'zbekcha
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
 
-              <Button variant="ghost" size="icon" className="rounded-full">
-                <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-                <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+              {/* Theme toggle */}
+              <Button variant="ghost" size="icon" className="h-8 w-8 md:h-10 md:w-10 rounded-full hover-bright hover-glow">
+                <Sun className="h-4 w-4 md:h-5 md:w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+                <Moon className="absolute h-4 w-4 md:h-5 md:w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
               </Button>
-              <div className="ml-2 h-9 w-9 overflow-hidden rounded-full border-2 border-primary/20 bg-primary/10 p-1">
+              
+              {/* User avatar */}
+              <div className="h-8 w-8 md:h-9 md:w-9 overflow-hidden rounded-full border-2 border-primary shadow-glow-primary bg-gradient-primary p-0.5 md:p-1">
                 <div className="h-full w-full rounded-full bg-primary/20" />
               </div>
             </div>
           </header>
-          <div className="flex-1 overflow-y-auto p-4 md:p-8">
-            <div className="mx-auto max-w-6xl">
-              {children}
+          
+          {/* Responsive content area */}
+          <div className="flex-1 overflow-y-auto">
+            <div className="p-3 md:p-4 lg:p-8">
+              <div className="mx-auto max-w-full lg:max-w-6xl">
+                {children}
+              </div>
             </div>
           </div>
         </main>
