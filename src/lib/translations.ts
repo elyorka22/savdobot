@@ -49,6 +49,7 @@ export const translations = {
       date: "Дата",
       description: "Описание",
       amount: "Сумма",
+      currency: "UZS",
       loading: "Загрузка...",
       empty: "Нет зарегистрированных продаж."
     },
@@ -155,6 +156,7 @@ export const translations = {
       date: "Sana",
       description: "Tavsif",
       amount: "Summa",
+      currency: "UZS",
       loading: "Yuklanmoqda...",
       empty: "Sotuvlar topilmadi."
     },
