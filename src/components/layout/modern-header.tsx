@@ -72,7 +72,7 @@ export function ModernHeader({ title, subtitle, actions }: ModernHeaderProps) {
   const breadcrumbs = generateBreadcrumbs()
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-lg glass">
+    <header className="sticky top-0 z-50 w-full border-b bg-background/80 md:backdrop-blur-lg glass">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           {/* Left side - Mobile menu toggle and breadcrumbs */}
@@ -178,7 +178,7 @@ export function ModernHeader({ title, subtitle, actions }: ModernHeaderProps) {
 
         {/* Page title and subtitle */}
         {(title || subtitle) && (
-          <div className="border-t bg-background/50 backdrop-blur-sm px-4 py-4 sm:px-6 lg:px-8">
+          <div className="border-t bg-background/50 md:backdrop-blur-sm px-4 py-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-2xl font-bold text-gradient-primary">{title}</h1>
@@ -199,7 +199,7 @@ export function ModernHeader({ title, subtitle, actions }: ModernHeaderProps) {
       {/* Mobile menu overlay */}
       {isMobileMenuOpen && (
         <div className="fixed inset-0 z-50 md:hidden">
-          <div className="fixed inset-0 bg-background/80 backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)} />
+          <div className="fixed inset-0 bg-background/80 md:backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)} />
           <div className="fixed left-0 top-0 h-full w-64 bg-background shadow-xl animate-slide-in">
             <div className="p-4 border-b">
               <div className="flex items-center justify-between">

@@ -322,7 +322,7 @@ export function ChatInterface() {
   }
 
   return (
-    <Card className="relative flex h-[calc(100vh-8rem)] flex-col overflow-hidden rounded-2xl border bg-background/50 backdrop-blur-sm glass shadow-glow-primary">
+    <Card className="relative flex h-[calc(100vh-8rem)] flex-col overflow-hidden rounded-2xl border bg-background/50 md:backdrop-blur-sm glass shadow-glow-primary">
       <ScrollArea className="flex-1 p-4 pb-24" ref={scrollRef}>
         <div className="space-y-3">
           {messages.map((message) => (
@@ -363,13 +363,13 @@ export function ChatInterface() {
         </div>
       </ScrollArea>
 
-      <div className="absolute inset-x-0 bottom-0 border-t bg-background/80 backdrop-blur-md glass p-3">
+      <div className="absolute inset-x-0 bottom-0 border-t bg-background/80 md:backdrop-blur-md glass p-3">
         <form
           onSubmit={(e) => {
             e.preventDefault()
             handleSend()
           }}
-          className="flex items-center gap-2 rounded-full border border-primary/20 bg-background/50 backdrop-blur-sm px-2 py-1 shadow-sm hover-glow"
+          className="flex items-center gap-2 rounded-full border border-primary/20 bg-background/50 md:backdrop-blur-sm px-2 py-1 shadow-sm hover-glow"
         >
           <Button type="button" variant="ghost" size="icon" className="rounded-full text-muted-foreground hover:text-accent hover-bright">
             <Mic className="h-5 w-5" />

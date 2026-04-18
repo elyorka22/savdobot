@@ -134,15 +134,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full bg-background font-body">
-        {/* Mobile overlay */}
-        <div className="fixed inset-0 z-50 md:hidden">
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" />
-        </div>
         
         <Sidebar variant="sidebar" collapsible="icon">
           <SidebarHeader className="border-b px-4 py-3 md:px-6 md:py-4 bg-gradient-primary">
             <div className="flex items-center gap-3">
-              <div className="flex h-8 w-8 md:h-10 md:w-10 items-center justify-center rounded-xl bg-white/20 backdrop-blur-sm border border-white/30 shadow-glow-primary">
+              <div className="flex h-8 w-8 md:h-10 md:w-10 items-center justify-center rounded-xl bg-white/20 border border-white/30 shadow-glow-primary md:backdrop-blur-sm">
                 <LayoutDashboard className="h-4 w-4 md:h-6 md:w-6 text-white" />
               </div>
               <span className="text-lg md:text-xl font-bold tracking-tight text-white group-data-[collapsible=icon]:hidden">
@@ -199,7 +195,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
         <main className="flex flex-1 flex-col overflow-hidden">
           {/* Mobile-friendly header */}
-          <header className="flex h-14 md:h-16 items-center justify-between border-b bg-background/80 px-3 md:px-6 backdrop-blur-md glass">
+          <header className="flex h-14 md:h-16 items-center justify-between border-b bg-background/80 px-3 md:px-6 md:backdrop-blur-md glass">
             <div className="flex items-center gap-2 md:gap-4 flex-1 min-w-0">
               <SidebarTrigger className="hover-bright h-8 w-8" />
               <h1 className="text-sm md:text-lg font-semibold text-gradient-primary truncate">

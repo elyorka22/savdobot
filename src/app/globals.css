@@ -119,6 +119,37 @@
   }
   body {
     @apply bg-background text-foreground;
+    /* Mobile-specific fixes */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    /* Prevent matte overlay on iOS */
+    -webkit-overflow-scrolling: touch;
+    /* Fix viewport issues on mobile */
+    overflow-x: hidden;
+  }
+  
+  /* Mobile-specific fixes */
+  @media (max-width: 768px) {
+    body {
+      /* Disable backdrop-filter on mobile to prevent matte effects */
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+      /* Ensure proper scrolling */
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    
+    /* Fix glass effects on mobile */
+    .glass,
+    .glass-dark {
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+      background: hsl(228 100% 98% / 0.95);
+    }
+    
+    .glass-dark {
+      background: hsl(240 10% 12% / 0.95);
+    }
   }
 }
 
